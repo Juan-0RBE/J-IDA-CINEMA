@@ -38,5 +38,19 @@ SELECT nombre_sede, nombre_pelicula, cantidad_vistas, RANK() OVER (PARTITION BY 
 FROM vistas_por_sede
 ORDER BY nombre_sede, posicion;
 
-
-
+-- =====================================================================
+-- Consultas Deivid
+-- =====================================================================
+--Consulta: consultar los ingresos de cada colaborador para identificar mayores ganancias
+-- Tipo ventana: uso de RANK
+WITH ingresos_colaborador AS (
+  SELECT c.Id_Colaborador AS id_colaborador, c.Nombre_negocio AS colaborador,c.Estado AS estado,
+  --Se calcula el total de unidades vendidas (productos)
+    SUM(vp.Cantidad) AS unidades_vendidas,
+  -- Se calcula el total de ingresos multiplicando la cantidad vendida por el precio unitario de cada producto.
+    SUM(vp.Cantidad * vp.Precio_unitario) AS ingresos FROM Ven_Pro vp JOIN Producto_Confiteria pc ON pc.Id_Producto = vp.Prod_Conf_Id_Prod JOIN Colaborador c
+  ON c.Id_Colaborador = pc.Colaborador_Id_Colaborador GROUP BY c.Id_Colaborador, c.Nombre_negocio, c.Estado
+  )
+  --Se establece un ranking entre los colaboradores con respecto a las unidades de sus productos vendidas
+SELECT colaborador,estado, unidades_vendidas, ingresos, RANK() OVER (ORDER BY ingresos DESC) AS posicion,
+  ROUND(ingresos * 100.0 / SUM(ingresos) OVER (), 2) AS porcentaje_total FROM ingresos_colaborador ORDER BY posicion, colaborador;
