@@ -78,9 +78,9 @@ INSERT INTO Tipo_Boleta (Nombre, Aplica_para, Precio) VALUES
 ('Día del cine',  'Todos los miércoles',       9000.00);
 
 -- ---------------------------------------------------------------------
--- 6. ACTOR_DIRECTOR (36): Fechas de nacimiento completadas
+-- 6. Actor_Director (36): Fechas de nacimiento completadas
 -- ---------------------------------------------------------------------
-INSERT INTO ACTOR_DIRECTOR (Nombre, Nacionalidad, Fecha_Nacimiento, Idioma) VALUES
+INSERT INTO Actor_Director (Nombre, Nacionalidad, Fecha_Nacimiento, Idioma) VALUES
 -- Directores
 ('Christopher Nolan',          'Británica',          '1970-07-30', 'Inglés'),   -- 1
 ('Destin Daniel Cretton',      'Estadounidense',     '1978-11-23', 'Inglés'),   -- 2
@@ -392,7 +392,7 @@ UNION ALL SELECT 'Sala', COUNT(*) FROM Sala
 UNION ALL SELECT 'Rol_Staff', COUNT(*) FROM Rol_Staff
 UNION ALL SELECT 'Staff', COUNT(*) FROM Staff
 UNION ALL SELECT 'Tipo_Boleta', COUNT(*) FROM Tipo_Boleta
-UNION ALL SELECT 'ACTOR_DIRECTOR', COUNT(*) FROM ACTOR_DIRECTOR
+UNION ALL SELECT 'Actor_Director', COUNT(*) FROM Actor_Director
 UNION ALL SELECT 'Pelicula', COUNT(*) FROM Pelicula
 UNION ALL SELECT 'Pelicula_Genero', COUNT(*) FROM Pelicula_Genero
 UNION ALL SELECT 'Act_Dir_Pel', COUNT(*) FROM Act_Dir_Pel
