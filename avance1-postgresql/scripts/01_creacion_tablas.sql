@@ -63,8 +63,8 @@ CREATE TABLE Pelicula
     Clasificacion    VARCHAR(10) NOT NULL   -- Clasificación por edad
 );
 
--- ACTOR_DIRECTOR: personas que participan en películas y dan charlas (contratos).
-CREATE TABLE ACTOR_DIRECTOR
+-- Actor_Director: personas que participan en películas y dan charlas (contratos).
+CREATE TABLE Actor_Director
 (
     Id_Actor_Director INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
     Nombre            VARCHAR(100) NOT NULL,
@@ -228,7 +228,7 @@ CREATE TABLE Ven_Pro
 
 ALTER TABLE Sede                ADD CONSTRAINT Sede_PK                PRIMARY KEY ( Id_Sede );
 ALTER TABLE Pelicula            ADD CONSTRAINT Pelicula_PK            PRIMARY KEY ( Id_Pelicula );
-ALTER TABLE ACTOR_DIRECTOR      ADD CONSTRAINT ACTOR_DIRECTOR_PK      PRIMARY KEY ( Id_Actor_Director );
+ALTER TABLE Actor_Director      ADD CONSTRAINT Actor_Director_PK      PRIMARY KEY ( Id_Actor_Director );
 ALTER TABLE Espectador          ADD CONSTRAINT Espectador_PK          PRIMARY KEY ( Id_Espectador );
 ALTER TABLE Colaborador         ADD CONSTRAINT Colaborador_PK         PRIMARY KEY ( Id_Colaborador );
 ALTER TABLE Tipo_Boleta         ADD CONSTRAINT Tipo_Boleta_PK         PRIMARY KEY ( Id_Tipo_Boleta );
@@ -279,10 +279,10 @@ ALTER TABLE Producto_Confiteria
     ADD CONSTRAINT Prod_Conf_Colaborador_FK FOREIGN KEY ( Colaborador_Id_Colaborador )
     REFERENCES Colaborador ( Id_Colaborador );
 
--- Contrato -> ACTOR_DIRECTOR, Funcion
+-- Contrato -> Actor_Director, Funcion
 ALTER TABLE Contrato
-    ADD CONSTRAINT Contrato_ACTOR_DIRECTOR_FK FOREIGN KEY ( Act_Dir_Id_Actor_Dir )
-    REFERENCES ACTOR_DIRECTOR ( Id_Actor_Director );
+    ADD CONSTRAINT Contrato_Actor_Director_FK FOREIGN KEY ( Act_Dir_Id_Actor_Dir )
+    REFERENCES Actor_Director ( Id_Actor_Director );
 
 ALTER TABLE Contrato
     ADD CONSTRAINT Contrato_Funcion_FK FOREIGN KEY ( Funcion_Id_Funcion )
@@ -305,10 +305,10 @@ ALTER TABLE Venta
     ADD CONSTRAINT Venta_Funcion_FK FOREIGN KEY ( Funcion_Id_Funcion )
     REFERENCES Funcion ( Id_Funcion );
 
--- Act_Dir_Pel -> ACTOR_DIRECTOR, Pelicula
+-- Act_Dir_Pel -> Actor_Director, Pelicula
 ALTER TABLE Act_Dir_Pel
-    ADD CONSTRAINT Participar_ACTOR_DIRECTOR_FK FOREIGN KEY ( Act_Dir_Id_Actor_Director )
-    REFERENCES ACTOR_DIRECTOR ( Id_Actor_Director );
+    ADD CONSTRAINT Participar_Actor_Director_FK FOREIGN KEY ( Act_Dir_Id_Actor_Director )
+    REFERENCES Actor_Director ( Id_Actor_Director );
 
 ALTER TABLE Act_Dir_Pel
     ADD CONSTRAINT Participar_Pelicula_FK FOREIGN KEY ( Pelicula_Id_Pelicula )
