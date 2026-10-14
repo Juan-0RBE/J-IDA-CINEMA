@@ -53,19 +53,19 @@ INSERT INTO Rol_Staff (Nombre, Salario) VALUES
 -- ---------------------------------------------------------------------
 -- 4. STAFF (12): ids 1,2 taquilleros Bogotá; 3,11 taquilleros Sibaté
 -- ---------------------------------------------------------------------
-INSERT INTO Staff (Documento, Nombre, Rol_Staff_Nombre, Sede_Id_Sede) VALUES
-('1012345601', 'Carlos Andrés Ruiz',      'Taquillero',             1),
-('1012345602', 'Diana Marcela Peña',      'Taquillero',             1),
-('1012345603', 'Jhon Alexander Ortiz',    'Taquillero',             2),
-('1012345604', 'Luisa Fernanda Castro',   'Confitero',              1),
-('1012345605', 'Pedro Pablo Vargas',      'Confitero',              2),
-('1012345606', 'Wilson Hernández',        'Proyeccionista',         1),
-('1012345607', 'Miguel Ángel Suárez',     'Proyeccionista',         2),
-('1012345608', 'Karen Johana Molina',     'Acomodador',             1),
-('1012345609', 'Brayan Steven Torres',    'Acomodador',             2),
-('1012345610', 'Adriana Lucía Camacho',   'Coordinador de eventos', 1),
-('1012345611', 'Yesica Paola Ramírez',    'Taquillero',             2),
-('1012345612', 'Héctor Fabio Mora',       'Acomodador',             1);
+INSERT INTO Staff (Documento, Nombre, Id_Rol_Staff, Sede_Id_Sede) VALUES
+('1012345601', 'Carlos Andrés Ruiz',      1, 1),
+('1012345602', 'Diana Marcela Peña',      1, 1),
+('1012345603', 'Jhon Alexander Ortiz',    1, 2),
+('1012345604', 'Luisa Fernanda Castro',   2, 1),
+('1012345605', 'Pedro Pablo Vargas',      2, 2),
+('1012345606', 'Wilson Hernández',        3, 1),
+('1012345607', 'Miguel Ángel Suárez',     3, 2),
+('1012345608', 'Karen Johana Molina',     4, 1),
+('1012345609', 'Brayan Steven Torres',    4, 2),
+('1012345610', 'Adriana Lucía Camacho',   5, 1),
+('1012345611', 'Yesica Paola Ramírez',    1, 2),
+('1012345612', 'Héctor Fabio Mora',       4, 1);
 
 -- ---------------------------------------------------------------------
 -- 5. TIPO_BOLETA (5)
