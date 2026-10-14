@@ -44,28 +44,28 @@ INSERT INTO Sala (Numero, Capacidad, Tipo_Sala, Sede_Id_Sede) VALUES
 -- 3. ROL_STAFF (5)
 -- ---------------------------------------------------------------------
 INSERT INTO Rol_Staff (Nombre, Salario) VALUES
-('Taquillero',             1800000.00),
-('Confitero',              1700000.00),
-('Proyeccionista',        2300000.00),
-('Acomodador',            1600000.00),
-('Coordinador de eventos',3200000.00);
+('Taquillero',             1800000.00),   -- 1
+('Confitero',              1700000.00),   -- 2
+('Proyeccionista',         2300000.00),   -- 3
+('Acomodador',             1600000.00),   -- 4
+('Coordinador de eventos', 3200000.00);   -- 5
 
 -- ---------------------------------------------------------------------
 -- 4. STAFF (12): ids 1,2 taquilleros Bogotá; 3,11 taquilleros Sibaté
 -- ---------------------------------------------------------------------
 INSERT INTO Staff (Documento, Nombre, Id_Rol_Staff, Sede_Id_Sede) VALUES
-('1012345601', 'Carlos Andrés Ruiz',      1, 1),
-('1012345602', 'Diana Marcela Peña',      1, 1),
-('1012345603', 'Jhon Alexander Ortiz',    1, 2),
-('1012345604', 'Luisa Fernanda Castro',   2, 1),
-('1012345605', 'Pedro Pablo Vargas',      2, 2),
-('1012345606', 'Wilson Hernández',        3, 1),
-('1012345607', 'Miguel Ángel Suárez',     3, 2),
-('1012345608', 'Karen Johana Molina',     4, 1),
-('1012345609', 'Brayan Steven Torres',    4, 2),
-('1012345610', 'Adriana Lucía Camacho',   5, 1),
-('1012345611', 'Yesica Paola Ramírez',    1, 2),
-('1012345612', 'Héctor Fabio Mora',       4, 1);
+('1012345601', 'Carlos Andrés Ruiz',      1, 1),   -- Taquillero
+('1012345602', 'Diana Marcela Peña',      1, 1),   -- Taquillero
+('1012345603', 'Jhon Alexander Ortiz',    1, 2),   -- Taquillero
+('1012345604', 'Luisa Fernanda Castro',   2, 1),   -- Confitero
+('1012345605', 'Pedro Pablo Vargas',      2, 2),   -- Confitero
+('1012345606', 'Wilson Hernández',        3, 1),   -- Proyeccionista
+('1012345607', 'Miguel Ángel Suárez',     3, 2),   -- Proyeccionista
+('1012345608', 'Karen Johana Molina',     4, 1),   -- Acomodador
+('1012345609', 'Brayan Steven Torres',    4, 2),   -- Acomodador
+('1012345610', 'Adriana Lucía Camacho',   5, 1),   -- Coordinador de eventos
+('1012345611', 'Yesica Paola Ramírez',    1, 2),   -- Taquillero
+('1012345612', 'Héctor Fabio Mora',       4, 1);   -- Acomodador
 
 -- ---------------------------------------------------------------------
 -- 5. TIPO_BOLETA (5)
@@ -218,7 +218,7 @@ INSERT INTO Funcion (Fecha_Hora_Inicio, Idioma, Pelicula_Id_Pelicula, Sala_Id_Sa
 -- 11. ESPECTADOR (35)
 -- ---------------------------------------------------------------------
 INSERT INTO espectador
-    (nombre, "Documento", fecha_nacimiento, telefono, correo)
+    (nombre, Documento, fecha_nacimiento, telefono, correo)
 VALUES
 ('Laura Camila Rodríguez', '1023456781', '1995-03-12', '3001000001', 'laura.rodriguez@correo.com'),
 ('Carlos Eduardo Martínez', '1023456782', '1988-07-25', '3001000002', 'carlos.martinez@correo.com'),
