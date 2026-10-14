@@ -91,8 +91,6 @@ BEGIN
 END;
 $$;
 
-
-
 -- Casos de prueba
 
 -- Reserva ya hecha en un horario que se cruza
@@ -109,3 +107,67 @@ CALL reservar_evento(4, '2026-10-20 18:00', 'Español', 1, 'J''IDA Cinema Bogot�
 CALL reservar_evento(4, '2026-10-20 18:00', 'Español', 5, 'J''IDA Cinema Sibaté');
 -- Caso fallido, no se reserva con el tiempo de anticipación establecido
 CALL reservar_evento(4, '2026-10-09 18:00', 'Español', 5, 'J''IDA Cinema Bogotá');
+
+-- =====================================================================
+-- Procedimientos Deivid
+-- =====================================================================
+-- Procedimiento de registrar un contrato
+-- Tablas usadas: Contrato, Actor_Director
+CREATE OR REPLACE PROCEDURE registrar_contrato(
+    actor_director_id INTEGER,
+    funcion_id        INTEGER,
+    inicio_contrato   DATE,
+    fin_contrato      DATE,
+    estado_contrato   VARCHAR DEFAULT 'Vigente'
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id      INTEGER;
+    v_nombre  VARCHAR(100);
+BEGIN
+    -- Se valida que los campos de la fecha no sean nulos
+    IF inicio_contrato IS NULL OR fin_contrato IS NULL THEN
+        RAISE EXCEPTION 'Las fechas de inicio y fin son obligatorias';
+    END IF;
+
+    -- Validación para que la fecha de finalización no sea previa a la fecha en la que se inicia ese contrato
+    IF fin_contrato < inicio_contrato THEN
+        RAISE EXCEPTION 'La fecha fin (%) no puede ser anterior a la fecha inicio (%)',
+            fin_contrato, inicio_contrato;
+    END IF;
+
+    -- Verificar que el actor o el director escogido exista
+    SELECT Nombre INTO v_nombre FROM actor_director
+    WHERE Id_Actor_Director = actor_director_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El actor o el director: % no existe', actor_director_id;
+    END IF;
+
+    -- Verificar que la función existe
+    SELECT Id_Funcion INTO v_id FROM funcion WHERE Id_Funcion = funcion_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'La función escogida % no existe', funcion_id;
+    END IF;
+
+    -- Se hace el registro de un contrato
+    INSERT INTO Contrato (Fecha_inicio, Fecha_fin, Estado, Act_Dir_Id_Actor_Dir, Funcion_Id_Funcion) 
+  VALUES (inicio_contrato, fin_contrato, estado_contrato, actor_director_id, funcion_id);
+
+    RAISE NOTICE 'Contrato registrado para "%", de la función %, desde % hasta %',
+        v_nombre, funcion_id, inicio_contrato, fin_contrato;
+EXCEPTION
+      WHEN OTHERS THEN
+        RAISE EXCEPTION 'No se pudo registrar el contrato: %', SQLERRM;
+END;
+$$;
+-- Caso exitoso 
+CALL registrar_contrato(1, 5, '2026-10-01', '2026-10-31');
+
+-- Caso de fallo: Actor o director que no se encuentra en la base de datos (No existe)
+CALL registrar_contrato(9999, 25, '2026-10-01', '2026-10-31');
+
+-- Caso de fallo: Fecha de inicio mayor a la de finalización
+CALL registrar_contrato(1, 25, '2026-10-31', '2026-10-01');
