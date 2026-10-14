@@ -107,7 +107,8 @@ CREATE TABLE Tipo_Boleta
 -- Rol_Staff: catálogo de cargos con su salario base.
 CREATE TABLE Rol_Staff
 (
-    Nombre  VARCHAR(50) NOT NULL,           -- El nombre del rol es la llave primaria
+    Id_Rol_Staff INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
+    Nombre  VARCHAR(50) NOT NULL,      
     Salario NUMERIC(10,2) NOT NULL
 );
 
@@ -132,7 +133,7 @@ CREATE TABLE Staff
     Id_Staff         INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
     Documento        VARCHAR(20) NOT NULL,  -- Único por empleado (ver sección 4)
     Nombre           VARCHAR(100) NOT NULL,
-    Rol_Staff_Nombre VARCHAR(50) NOT NULL,
+    Id_Rol_Staff     INTEGER NOT NULL,
     Sede_Id_Sede     INTEGER NOT NULL
 );
 
@@ -231,7 +232,7 @@ ALTER TABLE ACTOR_DIRECTOR      ADD CONSTRAINT ACTOR_DIRECTOR_PK      PRIMARY KE
 ALTER TABLE Espectador          ADD CONSTRAINT Espectador_PK          PRIMARY KEY ( Id_Espectador );
 ALTER TABLE Colaborador         ADD CONSTRAINT Colaborador_PK         PRIMARY KEY ( Id_Colaborador );
 ALTER TABLE Tipo_Boleta         ADD CONSTRAINT Tipo_Boleta_PK         PRIMARY KEY ( Id_Tipo_Boleta );
-ALTER TABLE Rol_Staff           ADD CONSTRAINT Rol_Staff_PK           PRIMARY KEY ( Nombre );
+ALTER TABLE Rol_Staff           ADD CONSTRAINT Rol_Staff_PK           PRIMARY KEY ( Id_Rol_Staff );
 ALTER TABLE Sala                ADD CONSTRAINT Sala_PK                PRIMARY KEY ( Id_Sala );
 ALTER TABLE Staff               ADD CONSTRAINT Staff_PK               PRIMARY KEY ( Id_Staff );
 ALTER TABLE Funcion             ADD CONSTRAINT Funcion_PK             PRIMARY KEY ( Id_Funcion );
@@ -257,8 +258,8 @@ ALTER TABLE Sala
 
 -- Staff -> Rol_Staff, Sede
 ALTER TABLE Staff
-    ADD CONSTRAINT Staff_Rol_Staff_FK FOREIGN KEY ( Rol_Staff_Nombre )
-    REFERENCES Rol_Staff ( Nombre );
+    ADD CONSTRAINT Staff_Rol_Staff_FK FOREIGN KEY ( Id_Rol_Staff )
+    REFERENCES Rol_Staff ( Id_Rol_Staff );
 
 ALTER TABLE Staff
     ADD CONSTRAINT Staff_Sede_FK FOREIGN KEY ( Sede_Id_Sede )
@@ -450,7 +451,7 @@ CREATE INDEX Idx_Contrato_Funcion   ON Contrato ( Funcion_Id_Funcion );
 
 -- Staff
 CREATE INDEX Idx_Staff_Sede         ON Staff ( Sede_Id_Sede );
-CREATE INDEX Idx_Staff_Rol          ON Staff ( Rol_Staff_Nombre );
+CREATE INDEX Idx_Staff_Rol          ON Staff ( Id_Rol_Staff );
 
 -- Producto_Confiteria
 CREATE INDEX Idx_Prod_Conf_Colab    ON Producto_Confiteria ( Colaborador_Id_Colaborador );
