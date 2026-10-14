@@ -177,9 +177,9 @@ CREATE TABLE Venta
 (
     Id_Venta                   INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
     Fecha                      DATE NOT NULL,
-    Precio_Unitario            NUMERIC(10,2) NOT NULL CHECK (Precio_Unitario >= 0),  -- Precio congelado al momento de la venta
+    Precio_Unitario            NUMERIC(10,2) NOT NULL,  -- Precio congelado al momento de la venta
     Metodo_pago                VARCHAR(30) NOT NULL,
-    Cantidad                   INTEGER NOT NULL CHECK (Cantidad > 0),        -- Número de boletas compradas
+    Cantidad                   INTEGER NOT NULL,        -- Número de boletas compradas
     Staff_Id_Staff             INTEGER NOT NULL,
     Espectador_Id_Espectador   INTEGER NOT NULL,
     Tipo_Boleta_Id_Tipo_Boleta INTEGER NOT NULL,
