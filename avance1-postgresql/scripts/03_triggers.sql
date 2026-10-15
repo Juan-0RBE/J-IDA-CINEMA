@@ -207,3 +207,122 @@ VALUES (2, 1, 61, 16500.00);
 -- Caso fallido: se solicita una cantidad de 2 unidades del producto con id 13 (un producto no existente)
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
 VALUES (2, 13, 1, 16500.00);
+
+/*
+Trigger #5: Controla que no se puedan agregar o actualizar productos de confitería si el colaborador
+se encuentra en estado 'Inactivo' (por ejemplo, si su temporada de alianza terminó).
+
+Tablas usadas: Producto_Confiteria, Colaborador
+*/
+
+-- Se crea la función del trigger para verificar el estado del colaborador
+CREATE OR REPLACE FUNCTION fn_verificar_estado_colaborador()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_estado_colaborador VARCHAR(20);
+    v_nombre_negocio VARCHAR(100);
+BEGIN
+    -- Se consulta el estado y el nombre del colaborador de un producto
+    SELECT Estado, Nombre_negocio 
+    INTO v_estado_colaborador, v_nombre_negocio
+    FROM Colaborador
+    WHERE Id_Colaborador = NEW.Colaborador_Id_Colaborador;
+
+    -- Se valida que el colaborador exista
+    IF v_estado_colaborador IS NULL THEN
+        RAISE EXCEPTION 'El colaborador con ID % no se encuentra registrado.', 
+            NEW.Colaborador_Id_Colaborador;
+    END IF;
+
+    -- Se valida que el colaborador esté activo
+    IF v_estado_colaborador <> 'Activo' THEN
+        RAISE EXCEPTION 'No se puede registrar o actualizar el producto para el colaborador "%" (ID %) porque su estado actual es Inactivo.',
+            v_nombre_negocio, NEW.Colaborador_Id_Colaborador;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Se crea el Trigger
+CREATE TRIGGER trg_verificar_estado_colaborador
+    BEFORE INSERT OR UPDATE ON Producto_Confiteria
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_verificar_estado_colaborador();
+
+-- Pruebas:
+-- Caso exitoso (Se registra un producto con colaborador activo.)
+BEGIN;
+INSERT INTO Producto_Confiteria (Precio, Nombre, Stock, Categoria, Colaborador_Id_Colaborador)
+VALUES (14500.00, 'Crepe con Arequipe y Helado', 40, 'Postres', 1);
+ROLLBACK;
+
+-- Caso fallido (Se registra un producto con colaborador inactivo.)
+BEGIN;
+INSERT INTO Producto_Confiteria (Precio, Nombre, Stock, Categoria, Colaborador_Id_Colaborador)
+VALUES (8000.00, 'Combo Pizza Personal Cinepolitana', 25, 'Combos', 4);
+ROLLBACK;
+
+-- Caso fallido (El colaborador no existe.)
+BEGIN;
+INSERT INTO Producto_Confiteria (Precio, Nombre, Stock, Categoria, Colaborador_Id_Colaborador)
+VALUES (12000.00, 'Capuchino Nevado Especial', 30, 'Bebidas', 99);
+ROLLBACK;
+
+/*
+Trigger #6: Controla la inserción y actualización de espectadores. Verifica que la fecha de nacimiento 
+no sea una fecha en el futuro y valida que el correo electrónico ingresado tenga un formato válido.
+
+Tablas usadas: Espectador
+*/
+
+-- Se crea la función del trigger para los espectadores
+CREATE OR REPLACE FUNCTION fn_validar_espectador()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Se verifica que la fecha de nacimiento no esté en el futuro
+    IF NEW.Fecha_Nacimiento IS NOT NULL AND NEW.Fecha_Nacimiento > CURRENT_DATE THEN
+        RAISE EXCEPTION 'La fecha de nacimiento del espectador (%) no puede ser una fecha en el futuro.',
+            NEW.Fecha_Nacimiento;
+    END IF;
+
+    -- Se valida que el correo tenga un formato válido con '@'
+    IF NEW.Correo NOT SIMILAR TO '%@%.%' THEN
+        RAISE EXCEPTION 'El correo electrónico "%" no es válido. Debe tener el formato correo@dominio.prefijo',
+            NEW.Correo;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Se crea el Trigger
+CREATE TRIGGER trg_validar_espectador
+    BEFORE INSERT OR UPDATE ON Espectador
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_validar_espectador();
+
+-- Pruebas:
+-- Caso exitoso (Se registra un espectador válido.)
+BEGIN;
+INSERT INTO Espectador (Nombre, Documento, Fecha_Nacimiento, Telefono, Correo)
+VALUES ('Javier García', '1234567890', '2006-11-22', '1234567890', 'javier.garcia@gmail.com');
+ROLLBACK;
+
+-- Caso fallido (Se registra un espectador con fecha de nacimiento inválida.)
+BEGIN;
+INSERT INTO Espectador (Nombre, Documento, Fecha_Nacimiento, Telefono, Correo)
+VALUES ('Juan Orjuela', '1357924680', '2030-01-01', '3157924068', 'juan.orjuela@gmail.com');
+ROLLBACK;
+
+-- Caso fallido (El correo del espectador no es válido, no contiene @.)
+BEGIN;
+INSERT INTO Espectador (Nombre, Documento, Fecha_Nacimiento, Telefono, Correo)
+VALUES ('Alejandro Ferrer', '137954826', '1990-05-06', '3105554433', 'alejandro-ferrer.com');
+ROLLBACK;
+
+-- Caso fallido (El correo del espectador no es válido, ya que está incompleto.)
+BEGIN;
+INSERT INTO Espectador (Nombre, Documento, Fecha_Nacimiento, Telefono, Correo)
+VALUES ('Isabella Rodríguez', '1016789450', '2010-12-24', '3151112233', 'isabella.rodriguez@dominio');
+ROLLBACK;
