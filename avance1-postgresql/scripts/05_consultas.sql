@@ -135,3 +135,38 @@ LEFT JOIN boletas    b ON b.id_pelicula = p.Id_Pelicula
 LEFT JOIN confiteria c ON c.id_pelicula = p.Id_Pelicula
 -- Las películas que más ingresos generan aparecen primero
 ORDER BY ingresos_totales DESC;
+
+-- =====================================================================
+-- Consulta Alejandro
+-- =====================================================================
+
+/*
+CONSULTA: Ocupación por función
+Muestra, para cada función, cuántas boletas se vendieron frente a la
+capacidad de su sala y el porcentaje de ocupación resultante.
+Ordena de la función más llena a la más vacía.
+*/
+SELECT f.id_funcion,
+       p.nombre                                   AS pelicula,
+       se.nombre                                  AS sede,
+       sa.numero                                  AS sala,
+       f.fecha_hora_inicio,
+       sa.capacidad,
+  
+       -- Suma de boletas vendidas.COALESCE convierte NULL en 0 para las
+       -- funciones que todavía no tienen ventas.
+       COALESCE(SUM(v.cantidad), 0)               AS boletas_vendidas,
+       -- Porcentaje = vendidas * 100 / capacidad, con 2 decimales.
+       -- NULLIF evita una división entre cero si alguna capacidad fuera 0.
+       ROUND(100.0 * COALESCE(SUM(v.cantidad), 0)
+             / NULLIF(sa.capacidad, 0), 2)        AS ocupacion_pct
+  FROM funcion f
+  JOIN pelicula p ON p.id_pelicula = f.pelicula_id_pelicula   -- nombre de la película
+  JOIN sala sa    ON sa.id_sala    = f.sala_id_sala           -- capacidad y número de sala
+  JOIN sede se    ON se.id_sede    = sa.sede_id_sede          -- nombre de la sede
+  -- LEFT JOIN: conserva las funciones sin ventas (aparecen con 0 %).
+  -- Con un JOIN normal esas funciones desaparecerían del resultado.
+  LEFT JOIN venta v ON v.funcion_id_funcion = f.id_funcion
+  GROUP BY f.id_funcion, p.nombre, se.nombre, sa.numero,
+          f.fecha_hora_inicio, sa.capacidad
+  ORDER BY ocupacion_pct DESC, f.fecha_hora_inicio;
