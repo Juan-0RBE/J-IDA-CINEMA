@@ -1,5 +1,5 @@
 -- =====================================================================
--- Triggers Juan
+-- Procedimiento Juan
 -- =====================================================================
 
 /*
@@ -109,8 +109,9 @@ CALL reservar_evento(4, '2026-10-20 18:00', 'Español', 5, 'J''IDA Cinema Sibat�
 CALL reservar_evento(4, '2026-10-09 18:00', 'Español', 5, 'J''IDA Cinema Bogotá');
 
 -- =====================================================================
--- Procedimientos Deivid
+-- Procedimiento Deivid
 -- =====================================================================
+
 -- Procedimiento de registrar un contrato
 -- Tablas usadas: Contrato, Actor_Director
 CREATE OR REPLACE PROCEDURE registrar_contrato(
@@ -171,3 +172,119 @@ CALL registrar_contrato(9999, 25, '2026-10-01', '2026-10-31');
 
 -- Caso de fallo: Fecha de inicio mayor a la de finalización
 CALL registrar_contrato(1, 25, '2026-10-31', '2026-10-01');
+
+-- =====================================================================
+-- Procedimiento Javier
+-- =====================================================================
+
+/*
+  Procedimiento: Registrar Venta de Boletas y Calcular Total Automáticamente.
+  Tipo: Cálculo / Transacción.
+  Tablas usadas: Venta, Espectador, Staff, Funcion y Tipo_Boleta.
+*/
+-- Se crea el procedimiento para registrar las ventas.
+CREATE OR REPLACE PROCEDURE registrar_venta_boletas(
+    p_id_espectador INT,
+    p_id_staff INT,
+    p_id_funcion INT,
+    p_id_tipo_boleta INT,
+    p_cantidad INT,
+    p_metodo_pago VARCHAR
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_precio_unitario NUMERIC(10,2);
+    v_existencia_espectador INT;
+    v_existencia_staff INT;
+    v_existencia_funcion INT;
+BEGIN
+    -- Se valida que la cantidad de boletas sea mayor a cero
+    IF p_cantidad <= 0 THEN
+        RAISE EXCEPTION 'La cantidad de boletas debe ser mayor a 0.';
+    END IF;
+
+    -- Se verifica que el espectador exista
+    SELECT Id_Espectador INTO v_existencia_espectador
+    FROM Espectador
+    WHERE Id_Espectador = p_id_espectador;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El espectador con ID % no se encuentra registrado.', p_id_espectador;
+    END IF;
+
+    -- Se verifica que el miembro del staff exista
+    SELECT Id_Staff INTO v_existencia_staff
+    FROM Staff
+    WHERE Id_Staff = p_id_staff;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El empleado de staff con ID % no existe.', p_id_staff;
+    END IF;
+
+    -- Se verifica que la función exista
+    SELECT Id_Funcion INTO v_existencia_funcion
+    FROM Funcion
+    WHERE Id_Funcion = p_id_funcion;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'La función con ID % no existe.', p_id_funcion;
+    END IF;
+
+    -- Se obtiene el precio unitario del tipo de boleta
+    SELECT Precio INTO v_precio_unitario
+    FROM Tipo_Boleta
+    WHERE Id_Tipo_Boleta = p_id_tipo_boleta;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El tipo de boleta con ID % no existe.', p_id_tipo_boleta;
+    END IF;
+
+    -- Se inserta la venta
+    INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
+    VALUES (CURRENT_DATE, v_precio_unitario, p_metodo_pago, p_cantidad, p_id_staff, p_id_espectador, p_id_tipo_boleta, p_id_funcion);
+    RAISE NOTICE 'Venta registrada con éxito. Total a pagar: %', (p_cantidad * v_precio_unitario);
+
+EXCEPTION
+    WHEN raise_exception THEN
+        RAISE;
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error inesperado al registrar la venta de boletas: %', SQLERRM;
+END;
+$$;
+
+-- Caso exitoso (La venta es completamente válida.)
+BEGIN;
+CALL registrar_venta_boletas(
+    p_id_espectador := 1, 
+    p_id_staff := 1, 
+    p_id_funcion := 1, 
+    p_id_tipo_boleta := 1, 
+    p_cantidad := 2, 
+    p_metodo_pago := 'Tarjeta'
+);
+ROLLBACK;
+
+-- Caso fallido (El espectador no existe.)
+BEGIN;
+CALL registrar_venta_boletas(
+    p_id_espectador := 999, 
+    p_id_staff := 1, 
+    p_id_funcion := 1, 
+    p_id_tipo_boleta := 1, 
+    p_cantidad := 2, 
+    p_metodo_pago := 'Efectivo'
+);
+ROLLBACK;
+
+-- Caso fallido (Cantidad de boletas inválida.)
+BEGIN;
+CALL registrar_venta_boletas(
+    p_id_espectador := 1, 
+    p_id_staff := 1, 
+    p_id_funcion := 1, 
+    p_id_tipo_boleta := 1, 
+    p_cantidad := 0, 
+    p_metodo_pago := 'Efectivo'
+);
+ROLLBACK;
