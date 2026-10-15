@@ -1,3 +1,6 @@
+-- =====================================================================
+-- Triggers Juan
+-- =====================================================================
 /* 
   Trigger #1: No permitir cruces de horario en una misma sala 
   (usando la duración de la película)
@@ -69,7 +72,7 @@ ROLLBACK;
 -- Triggers Deivid
 -- =====================================================================
 
--- TRIGGER #2: Control de aforo total en salas
+-- Trigger #2: Control de aforo total en salas
 -- Tabla: Venta 
 -- Se hace uso de: BEFORE INSERT
 CREATE OR REPLACE FUNCTION validar_boletas_disponibles_fn()
@@ -120,6 +123,9 @@ INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff
 VALUES ('2026-10-08', 18000.00, 'Tarjeta', 2, 1, 2, 1, 25);
 
 
+-- =====================================================================
+-- Triggers Isabella
+-- =====================================================================
 /* 
 Trigger #3: controla que solo el staff de taquillero pueda realizar ventas
 Tablas usadas: ventas, staff
@@ -208,6 +214,9 @@ VALUES (2, 1, 61, 16500.00);
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
 VALUES (2, 13, 1, 16500.00);
 
+-- =====================================================================
+-- Triggers Javier
+-- =====================================================================
 /*
 Trigger #5: Controla que no se puedan agregar o actualizar productos de confitería si el colaborador
 se encuentra en estado 'Inactivo' (por ejemplo, si su temporada de alianza terminó).
