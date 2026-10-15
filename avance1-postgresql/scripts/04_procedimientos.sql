@@ -400,3 +400,70 @@ CALL registrar_ven_pro(3, 1, 500, NULL);
 
 -- La venta con id 1 ya cuenta con este producto
 CALL registrar_ven_pro(1, 1, 1, NULL);
+
+-- =====================================================================
+-- Procedimiento Alejandro
+-- =====================================================================
+
+/*
+PROCEDIMIENTO: Cerrar un contrato vencido
+Tablas: contrato
+*/
+
+CREATE OR REPLACE PROCEDURE sp_cerrar_contratos_vencidos(
+    p_fecha_corte DATE DEFAULT CURRENT_DATE,
+    INOUT p_cerrados INT DEFAULT 0
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Se valida la fecha de corte, la cual es obligatoria.
+    IF p_fecha_corte IS NULL THEN
+        RAISE EXCEPTION 'La fecha de corte no puede ser nula';
+    END IF;
+ 
+    -- Segunda validación, no se pueden vencer contratos con una fecha futura
+    IF p_fecha_corte > CURRENT_DATE THEN
+        RAISE EXCEPTION 'La fecha de corte (%) no puede ser futura', p_fecha_corte;
+    END IF;
+ 
+    -- Cierre: solo se efectua sobre contratos vigentes cuya fecha_fin es anterior al corte.
+    UPDATE contrato
+       SET estado = 'Finalizado'
+     WHERE estado = 'Vigente'
+       AND fecha_fin < p_fecha_corte;
+ 
+    GET DIAGNOSTICS p_cerrados = ROW_COUNT;
+END;
+$$;
+
+-- CASO EXITOSO
+-- Se usa BEGIN ... ROLLBACK para no dejar datos de prueba en la base de datos.
+BEGIN;
+ 
+-- Se insertan 4 contratos de prueba con distintos estados y fechas.
+INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion) VALUES
+  ('Vigente',   CURRENT_DATE - 30, CURRENT_DATE - 1,  11, 1),  -- vencido  -> Finalizado
+  ('Vigente',   CURRENT_DATE - 30, CURRENT_DATE - 10, 11, 1),  -- vencido  -> Finalizado
+  ('Vigente',   CURRENT_DATE - 5,  CURRENT_DATE + 30, 11, 1),  -- sigue Vigente
+  ('Cancelado', CURRENT_DATE - 40, CURRENT_DATE - 20, 11, 1);  -- no se revisa
+ 
+-- Se esperan p_cerrados = 2 (pueden ser más en caso de que haya más contratos en 
+-- estado 'Vigente' vencidos al momento de la ejecución).
+CALL sp_cerrar_contratos_vencidos(CURRENT_DATE, 0);
+ 
+-- Se verifica el resultado. Orden esperado: Finalizado, Finalizado, Vigente, Cancelado
+SELECT id_contrato, estado, fecha_fin
+  FROM contrato
+ WHERE act_dir_id_actor_dir = 11 AND funcion_id_funcion = 1
+ ORDER BY id_contrato DESC
+ LIMIT 4;
+ 
+-- Al ejecutarlo de nuevo ya no queda nada por cerrar, se espera p_cerrados = 0
+CALL sp_cerrar_contratos_vencidos(CURRENT_DATE, 0);
+ 
+ROLLBACK;   -- Deshace los contratos de prueba
+
+-- caso fallido
+-- Fecha de corte futura: lanza "La fecha de corte (...) no puede ser futura".
+CALL sp_cerrar_contratos_vencidos(CURRENT_DATE + 30, 10);
