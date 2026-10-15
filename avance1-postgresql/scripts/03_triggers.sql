@@ -335,3 +335,125 @@ BEGIN;
 INSERT INTO Espectador (Nombre, Documento, Fecha_Nacimiento, Telefono, Correo)
 VALUES ('Isabella Rodríguez', '1016789450', '2010-12-24', '3151112233', 'isabella.rodriguez@dominio');
 ROLLBACK;
+
+-- =====================================================================
+-- Triggers Alejandro
+-- =====================================================================
+/*
+Trigger #7: Validar contrato
+Tabla: contrato
+Se hace uso de BEFORE INSERT OR UPDATE
+*/
+
+CREATE OR REPLACE FUNCTION fn_validar_contrato()
+RETURNS trigger AS $$
+DECLARE
+    v_pelicula INT;   -- Película a la que pertenece la función del contrato
+BEGIN
+    -- La fecha de fin no puede ser anterior a la de inicio.
+    IF NEW.fecha_fin < NEW.fecha_inicio THEN
+        RAISE EXCEPTION 'Fechas inválidas: fecha_fin (%) es anterior a fecha_inicio (%)',
+                        NEW.fecha_fin, NEW.fecha_inicio;
+    END IF;
+ 
+    -- Se busca la película de la función indicada en el contrato.
+    SELECT pelicula_id_pelicula INTO v_pelicula
+      FROM funcion
+     WHERE id_funcion = NEW.funcion_id_funcion;
+ 
+    -- Si no se encontró nada con la consulta, la función no existe.
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'La función % no existe', NEW.funcion_id_funcion;
+    END IF;
+ 
+    -- Se verifica que el actor/director esté vinculado a esa película
+    -- en la tabla intermedia act_dir_pel (relación "Participar").
+    IF NOT EXISTS (
+        SELECT 1
+          FROM act_dir_pel
+         WHERE act_dir_id_actor_director = NEW.act_dir_id_actor_dir
+           AND pelicula_id_pelicula      = v_pelicula
+    ) THEN
+        RAISE EXCEPTION 'El actor/director % no participa en la película % de la función %',
+                        NEW.act_dir_id_actor_dir, v_pelicula, NEW.funcion_id_funcion;
+    END IF;
+ 
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Se crea el trigger
+CREATE OR REPLACE TRIGGER trg_validar_contrato
+BEFORE INSERT OR UPDATE ON contrato
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_contrato();
+
+-- Caso Exitoso: El contrato es creado sin inconvenientes
+INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion)
+  VALUES ('Vigente', CURRENT_DATE, CURRENT_DATE + 30, 11, 1);
+
+-- Caso Fallido: El actor/director reconocido con el id 18 no tiene participación
+-- en la función 1.
+INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion)
+  VALUES ('Vigente', CURRENT_DATE, CURRENT_DATE + 30, 18, 1);
+
+/*
+TRIGGER #8: Validar sede de la venta
+Tabla: venta
+Se hace uso de BEFORE INSERT OR UPDATE
+*/
+CREATE OR REPLACE FUNCTION fn_validar_sede_venta()
+RETURNS trigger AS $$
+DECLARE
+    v_sede_staff   INT;   -- Sede donde trabaja el empleado que vende
+    v_sede_funcion INT;   -- Sede donde se proyecta la función
+BEGIN
+    Se comienza por obtener la sede del empleado.
+    SELECT sede_id_sede INTO v_sede_staff
+      FROM staff
+     WHERE id_staff = NEW.staff_id_staff;
+ 
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El staff % no existe', NEW.staff_id_staff;
+    END IF;
+ 
+    -- Luego, se obtiene la sede de la función.
+    SELECT sa.sede_id_sede INTO v_sede_funcion
+      FROM funcion f
+      JOIN sala sa ON sa.id_sala = f.sala_id_sala
+     WHERE f.id_funcion = NEW.funcion_id_funcion;
+ 
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'La función % no existe', NEW.funcion_id_funcion;
+    END IF;
+ 
+    -- Se comparan ambas sedes. De ser distintas, se rechaza la venta.
+    IF v_sede_staff <> v_sede_funcion THEN
+        RAISE EXCEPTION 'El staff % (sede %) no puede vender para la función % (sede %)',
+                        NEW.staff_id_staff, v_sede_staff,
+                        NEW.funcion_id_funcion, v_sede_funcion;
+    END IF;
+ 
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Se crea el trigger
+CREATE TRIGGER trg_validar_sede_venta
+BEFORE INSERT OR UPDATE OF staff_id_staff, funcion_id_funcion ON venta
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_sede_venta();
+
+-- Caso Exitoso: Staff 1 = taquillero de Bogotá (sede 1). Función 19 = sala 1, sede 1 (Bogotá).
+-- Ambos son de la misma sede, así que la venta se registra.
+INSERT INTO venta (fecha, precio_unitario, metodo_pago, cantidad,
+                     staff_id_staff, espectador_id_espectador,
+                     tipo_boleta_id_tipo_boleta, funcion_id_funcion)
+  VALUES (CURRENT_DATE, 18000, 'Efectivo', 1, 1, 1, 1, 19);
+
+-- Caso Fallido: Staff 3 = taquillero de Sibaté (sede 2) intentando vender la función 19
+-- (Bogotá). El trigger rechaza la venta por ser sedes distintas.
+INSERT INTO venta (fecha, precio_unitario, metodo_pago, cantidad,
+                     staff_id_staff, espectador_id_espectador,
+                     tipo_boleta_id_tipo_boleta, funcion_id_funcion)
+  VALUES (CURRENT_DATE, 18000, 'Efectivo', 1, 3, 1, 1, 19);
