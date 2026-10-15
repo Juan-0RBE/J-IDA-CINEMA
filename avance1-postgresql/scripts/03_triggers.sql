@@ -166,7 +166,7 @@ EXECUTE FUNCTION venta_taquillero_fn();
 INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion) 
 VALUES('2026-10-12', 18000, 'Tarjeta', 2, 1, 1, 1, 1);
 
--- Caso exitoso: el staff que realiza la venta es 'Taquillero'
+-- Caso fallido: el staff que realiza la venta no es 'Taquillero'
 INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion) 
 VALUES('2026-10-12', 18000, 'Tarjeta', 2, 10, 1, 1, 1);
 
