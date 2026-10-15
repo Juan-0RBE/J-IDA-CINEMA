@@ -288,3 +288,115 @@ CALL registrar_venta_boletas(
     p_metodo_pago := 'Efectivo'
 );
 ROLLBACK;
+
+-- =====================================================================
+-- Procedimiento Isabella
+-- =====================================================================
+/*
+  Procedimiento: Realizar venta de confiteria sobre una venta ya realizada
+  Tipo: Calculo/Transacción
+  Tablas usadas: Venta, producto_confiteria, Vent_pro
+*/
+
+CREATE OR REPLACE PROCEDURE registrar_ven_pro(
+    p_id_venta          INT,
+    p_id_producto       INT,
+    p_cantidad          INT,
+    INOUT p_total_venta NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_precio NUMERIC(10,2);  -- Variable donde se almacena el precio del producto actualmente
+    v_stock  INT;            -- Variable que contiene el stock del producto
+    v_nombre VARCHAR(100);   -- Variable con el nombre del producto
+    v_id_venta INT;          -- Variable con el id de la venta
+BEGIN
+   
+    -- Verifica que los id de venta y producto no sean nulos
+    IF p_id_venta IS NULL OR p_id_producto IS NULL THEN
+        RAISE EXCEPTION 'La venta y el producto son obligatorios.';
+    END IF;
+
+    -- Verifica que la cantidad sea valida
+    IF p_cantidad IS NULL OR p_cantidad <= 0 THEN
+        RAISE EXCEPTION 'La cantidad debe ser mayor a 0.';
+    END IF;
+
+    -- Almacena el id de la venta en la variable declarada en caso de que lo encuentre
+    SELECT Id_Venta INTO v_id_venta 
+    FROM Venta 
+    WHERE Id_Venta = p_id_venta 
+    FOR UPDATE;
+
+    -- Si la variable queda vacía (NULL), significa que no se encontró
+    IF v_id_venta IS NULL THEN 
+        RAISE EXCEPTION 'La venta % no existe.', p_id_venta; 
+    END IF;
+ 
+    -- El producto debe existir. Se toma su precio actual
+    SELECT Precio, Stock, Nombre
+      INTO v_precio, v_stock, v_nombre
+      FROM Producto_Confiteria
+     WHERE Id_Producto = p_id_producto
+       FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El producto % no existe.', p_id_producto;
+    END IF;
+
+    -- Se verifica que el stock sea suficinte para la cantidad solicitada
+    IF v_stock < p_cantidad THEN
+        RAISE EXCEPTION 'Stock insuficiente de "%": disponible %, solicitado %.',
+                        v_nombre, v_stock, p_cantidad;
+    END IF;
+
+    -- Verifica si ese producto ya se encuentra en la venta para no repetirlo
+    IF EXISTS (SELECT 1 FROM Ven_Pro
+                WHERE Venta_Id_Venta = p_id_venta
+                  AND Prod_Conf_Id_Prod = p_id_producto) THEN
+        RAISE EXCEPTION 'El producto "%" ya está en la venta %.', v_nombre, p_id_venta;
+    END IF;
+
+    -- Por ultimo, hace la incersión de la Ven_pro a la venta realizada
+    INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
+    VALUES (p_id_venta, p_id_producto, p_cantidad, v_precio);
+ 
+    -- Almacena en la variable p_total_venta el total actual de la venta (boletas + todos sus productos)
+    SELECT v.Cantidad * v.Precio_Unitario
+           + COALESCE((SELECT SUM(vp.Cantidad * vp.Precio_unitario)
+                         FROM Ven_Pro vp
+                        WHERE vp.Venta_Id_Venta = v.Id_Venta), 0)
+      INTO p_total_venta
+      FROM Venta v
+      WHERE v.Id_Venta = p_id_venta;
+END;
+$$;
+
+-- Casos exitosos 
+-- Por cada venta ya existente se genera una venta de productos de confiteria con stock suficiente
+-- Venta 1 del producto 1 con cantidad de 3
+CALL registrar_ven_pro(1, 1, 3, NULL);
+-- Venta 1 del producto 1 con cantidad de 3
+CALL registrar_ven_pro(1, 2, 1, NULL);
+-- Venta 2 del prudcto 
+CALL registrar_ven_pro(2, 2, 1, NULL);
+
+-- Casos fallidos
+-- Tanto el id de venta como el de producto son obligatorios
+CALL registrar_ven_pro(NULL, 1, 1, NULL);
+CALL registrar_ven_pro(1, NULL, 1, NULL);
+
+-- El valor de la cantidad no puede ser igual o menor a 0
+CALL registrar_ven_pro(3, 1, 0, NULL);
+CALL registrar_ven_pro(3, 1, -2, NULL);
+CALL registrar_ven_pro(3, 1, NULL, NULL);
+
+-- Se debe ingresar un id válido tanto de la venta como del producto
+CALL registrar_ven_pro(999999, 1, 1, NULL);
+CALL registrar_ven_pro(3, 999999, 1, NULL);
+
+-- Debe haber stock suficiente para que se realice la venta
+CALL registrar_ven_pro(3, 1, 500, NULL);
+
+-- La venta con id 1 ya cuenta con este producto
+CALL registrar_ven_pro(1, 1, 1, NULL);
