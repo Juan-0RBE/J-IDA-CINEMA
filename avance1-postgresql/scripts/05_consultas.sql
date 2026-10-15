@@ -87,3 +87,51 @@ SELECT nombre_sede, nombre_staff, rol, total_transacciones, total_boletas_vendid
 FROM rendimiento_staff
 ORDER BY nombre_sede, recaudo_total DESC;
 
+
+-- =====================================================================
+-- Consulta Isabella
+-- =====================================================================
+/*
+  Consulta: Ingresos totales por película (boletas + confitería).
+  Tipo: Reporte con agregación.
+  Tablas usadas: Pelicula, Funcion, Venta y Ven_Pro.
+*/
+
+-- CTE 1: ingresos por boletas, agrupados por película.
+WITH boletas AS (
+    SELECT f.Pelicula_Id_Pelicula AS id_pelicula,
+           -- Total de boletas vendidas de la película
+           SUM(v.Cantidad)                     AS boletas_vendidas,
+           -- Dinero de boletas
+           SUM(v.Cantidad * v.Precio_Unitario) AS ingresos_boletas
+    FROM Venta v
+    JOIN Funcion f ON f.Id_Funcion = v.Funcion_Id_Funcion
+    GROUP BY f.Pelicula_Id_Pelicula
+),
+
+-- CTE 2: ingresos por confitería, agrupados por película.
+confiteria AS (
+    SELECT f.Pelicula_Id_Pelicula AS id_pelicula,
+           -- Dinero de productos (se usa el precio congelado en Ven_Pro)
+           SUM(vp.Cantidad * vp.Precio_unitario) AS ingresos_confiteria
+    FROM Ven_Pro vp
+    JOIN Venta   v ON v.Id_Venta   = vp.Venta_Id_Venta
+    JOIN Funcion f ON f.Id_Funcion = v.Funcion_Id_Funcion
+    GROUP BY f.Pelicula_Id_Pelicula
+)
+
+-- Consulta final: une las dos agregaciones con la tabla de películas.
+SELECT p.Id_Pelicula,
+       p.Nombre                               AS pelicula,
+       -- COALESCE: si la película no tiene ventas, muestra 0 en vez de NULL
+       COALESCE(b.boletas_vendidas, 0)        AS boletas_vendidas,
+       COALESCE(b.ingresos_boletas, 0)        AS ingresos_boletas,
+       COALESCE(c.ingresos_confiteria, 0)     AS ingresos_confiteria,
+       -- Total = boletas + confitería
+       COALESCE(b.ingresos_boletas, 0) + COALESCE(c.ingresos_confiteria, 0) AS ingresos_totales
+FROM Pelicula p
+-- LEFT JOIN: incluye también las películas que no han vendido nada
+LEFT JOIN boletas    b ON b.id_pelicula = p.Id_Pelicula
+LEFT JOIN confiteria c ON c.id_pelicula = p.Id_Pelicula
+-- Las películas que más ingresos generan aparecen primero
+ORDER BY ingresos_totales DESC;
