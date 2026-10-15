@@ -123,14 +123,14 @@ confiteria AS (
 -- Consulta final: une las dos agregaciones con la tabla de películas.
 SELECT p.Id_Pelicula,
        p.Nombre                               AS pelicula,
-       -- COALESCE: si la película no tiene ventas, muestra 0 en vez de NULL
+       -- si la película no tiene ventas, muestra 0 en vez de NULL
        COALESCE(b.boletas_vendidas, 0)        AS boletas_vendidas,
        COALESCE(b.ingresos_boletas, 0)        AS ingresos_boletas,
        COALESCE(c.ingresos_confiteria, 0)     AS ingresos_confiteria,
        -- Total = boletas + confitería
        COALESCE(b.ingresos_boletas, 0) + COALESCE(c.ingresos_confiteria, 0) AS ingresos_totales
 FROM Pelicula p
--- LEFT JOIN: incluye también las películas que no han vendido nada
+-- Incluye también las películas que no han vendido nada
 LEFT JOIN boletas    b ON b.id_pelicula = p.Id_Pelicula
 LEFT JOIN confiteria c ON c.id_pelicula = p.Id_Pelicula
 -- Las películas que más ingresos generan aparecen primero
