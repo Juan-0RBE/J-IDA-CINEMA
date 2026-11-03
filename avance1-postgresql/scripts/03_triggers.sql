@@ -192,19 +192,19 @@ BEGIN
                         NEW.Prod_Conf_Id_Prod, NEW.Venta_Id_Venta;
     END IF;
  
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$;
 
--- El trigger se ejecta luego de insertar una venta 
+-- El trigger se ejecuta luego de insertar una venta 
 CREATE TRIGGER trg_descontar_stock
-BEFORE INSERT ON Ven_Pro
+AFTER INSERT ON Ven_Pro
 FOR EACH ROW
 EXECUTE FUNCTION descontar_stock_fn();
 
 -- Caso exitoso: se solicita una cantidad de 3 unidades del producto con id 1
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
-VALUES (1, 1, 3, 16500.00);
+VALUES (2, 1, 3, 16500.00);
 
 -- Caso fallido: se solicita una cantidad de 60 unidades del producto con id 1, lo cual excede la cantidad disponible
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
@@ -408,7 +408,7 @@ DECLARE
     v_sede_staff   INT;   -- Sede donde trabaja el empleado que vende
     v_sede_funcion INT;   -- Sede donde se proyecta la función
 BEGIN
-    Se comienza por obtener la sede del empleado.
+    --Se comienza por obtener la sede del empleado.
     SELECT sede_id_sede INTO v_sede_staff
       FROM staff
      WHERE id_staff = NEW.staff_id_staff;
@@ -457,3 +457,114 @@ INSERT INTO venta (fecha, precio_unitario, metodo_pago, cantidad,
                      staff_id_staff, espectador_id_espectador,
                      tipo_boleta_id_tipo_boleta, funcion_id_funcion)
   VALUES (CURRENT_DATE, 18000, 'Efectivo', 1, 3, 1, 1, 19);
+
+-- =====================================================================
+-- Triggers Corrección 
+-- =====================================================================
+/*
+Trigger #9: No permitir bajar la capacidad de una sala por debajo de las
+boletas ya vendidas para cualquiera de sus funciones.
+Tabla: Sala (usa también Funcion y Venta)
+*/
+CREATE OR REPLACE FUNCTION fn_validar_capacidad_sala()
+RETURNS trigger AS $$
+DECLARE
+    v_max_vendidas INT;
+BEGIN
+    -- Mayor número de boletas vendidas en una sola función de esta sala
+    SELECT MAX(t.total) INTO v_max_vendidas
+      FROM (SELECT SUM(v.Cantidad) AS total
+              FROM Venta v
+              JOIN Funcion f ON f.Id_Funcion = v.Funcion_Id_Funcion
+             WHERE f.Sala_Id_Sala = NEW.Id_Sala
+             GROUP BY v.Funcion_Id_Funcion) t;
+ 
+    IF v_max_vendidas IS NOT NULL AND NEW.Capacidad < v_max_vendidas THEN
+        RAISE EXCEPTION 'No se puede reducir la capacidad de la sala % a %: ya hay una función con % boletas vendidas.',
+                        NEW.Id_Sala, NEW.Capacidad, v_max_vendidas;
+    END IF;
+ 
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+ 
+CREATE TRIGGER trg_validar_capacidad_sala
+BEFORE UPDATE OF Capacidad ON Sala
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_capacidad_sala();
+ 
+-- Caso fallido: la función 25 (sala 1) tiene 78 boletas vendidas
+BEGIN;
+UPDATE Sala SET Capacidad = 70 WHERE Id_Sala = 1;
+ROLLBACK;
+ 
+-- Caso exitoso: 80 >= 78
+BEGIN;
+UPDATE Sala SET Capacidad = 80 WHERE Id_Sala = 1;
+ROLLBACK;
+
+/*
+Trigger #10: Un empleado que ya registró ventas no puede cambiarse de sede.
+Tabla: Staff (usa también Venta)
+*/
+CREATE OR REPLACE FUNCTION fn_validar_cambio_sede_staff()
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.Sede_Id_Sede <> OLD.Sede_Id_Sede
+       AND EXISTS (SELECT 1 FROM Venta WHERE Staff_Id_Staff = NEW.Id_Staff) THEN
+        RAISE EXCEPTION 'El empleado % ya tiene ventas registradas y no puede cambiar de sede (% -> %).',
+                        NEW.Id_Staff, OLD.Sede_Id_Sede, NEW.Sede_Id_Sede;
+    END IF;
+ 
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+ 
+CREATE TRIGGER trg_validar_cambio_sede_staff
+BEFORE UPDATE OF Sede_Id_Sede ON Staff
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_cambio_sede_staff();
+ 
+-- Caso fallido: el staff 1 (taquillero) tiene ventas
+BEGIN;
+UPDATE Staff SET Sede_Id_Sede = 2 WHERE Id_Staff = 1;
+ROLLBACK;
+ 
+-- Caso exitoso: el staff 12 (acomodador) no tiene ventas
+BEGIN;
+UPDATE Staff SET Sede_Id_Sede = 2 WHERE Id_Staff = 12;
+ROLLBACK;
+
+/*
+Trigger #12: El precio de un tipo de boleta no puede variar más de un 50 %
+en una sola actualización (evita errores de digitación, p. ej. 18000 -> 180000).
+Tabla: Tipo_Boleta
+*/
+CREATE OR REPLACE FUNCTION fn_validar_precio_tipo_boleta()
+RETURNS trigger AS $$
+BEGIN
+    IF OLD.Precio > 0
+       AND (NEW.Precio > OLD.Precio * 1.5 OR NEW.Precio < OLD.Precio * 0.5) THEN
+        RAISE EXCEPTION 'El precio de "%" no puede cambiar más de un 50 %% de una vez (actual: %, nuevo: %).',
+                        OLD.Nombre, OLD.Precio, NEW.Precio;
+    END IF;
+ 
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+ 
+CREATE TRIGGER trg_validar_precio_tipo_boleta
+BEFORE UPDATE OF Precio ON Tipo_Boleta
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_precio_tipo_boleta();
+ 
+-- Caso exitoso: 18000 -> 19000
+BEGIN;
+UPDATE Tipo_Boleta SET Precio = 19000 WHERE Id_Tipo_Boleta = 1;
+ROLLBACK;
+ 
+-- Caso fallido: 18000 -> 180000
+BEGIN;
+UPDATE Tipo_Boleta SET Precio = 180000 WHERE Id_Tipo_Boleta = 1;
+ROLLBACK;
+
