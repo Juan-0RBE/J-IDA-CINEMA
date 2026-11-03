@@ -536,7 +536,7 @@ UPDATE Staff SET Sede_Id_Sede = 2 WHERE Id_Staff = 12;
 ROLLBACK;
 
 /*
-Trigger #12: El precio de un tipo de boleta no puede variar más de un 50 %
+Trigger #11: El precio de un tipo de boleta no puede variar más de un 50 %
 en una sola actualización (evita errores de digitación, p. ej. 18000 -> 180000).
 Tabla: Tipo_Boleta
 */
