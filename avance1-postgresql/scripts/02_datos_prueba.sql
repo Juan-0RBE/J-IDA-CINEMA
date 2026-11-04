@@ -118,7 +118,42 @@ INSERT INTO Actor_Director (Nombre, Nacionalidad, Fecha_Nacimiento, Idioma) VALU
 ('Mckenna Grace',              'Estadounidense',     '2006-06-25', 'Inglés'),   -- 33
 ('Jacob Tremblay',             'Canadiense',         '2006-10-05', 'Inglés'),   -- 34
 ('Daisy Edgar-Jones',          'Británica',          '1998-05-24', 'Inglés'),   -- 35
-('Daisy Ridley',               'Británica',          '1992-04-10', 'Inglés');   -- 36
+('Daisy Ridley',               'Británica',          '1992-04-10', 'Inglés'),   -- 36
+('Cillian Murphy',             'Irlandesa',          '1976-05-25', 'Inglés'),   -- 37
+('Denis Villeneuve',           'Canadiense',         '1967-10-03', 'Francés'),  -- 38
+('Timothée Chalamet',          'Estadounidense',     '1995-12-27', 'Inglés'),   -- 39
+('Matthew McConaughey',        'Estadounidense',     '1969-11-04', 'Inglés'),   -- 40
+('Matt Reeves',                'Estadounidense',     '1966-04-27', 'Inglés'),   -- 41
+('George Miller',              'Australiana',        '1945-03-03', 'Inglés'),   -- 42
+('Tom Hardy',                  'Británica',          '1977-09-15', 'Inglés'),   -- 43
+('Jordan Peele',               'Estadounidense',     '1979-02-21', 'Inglés'),   -- 44
+('Winston Duke',               'Tobaguense',         '1986-11-15', 'Inglés'),   -- 45
+('Jon M. Chu',                 'Estadounidense',     '1979-11-02', 'Inglés'),   -- 46
+('Cynthia Erivo',         'Británica',          '1987-01-08', 'Inglés'),   -- 47
+('Kelsey Mann',           'Estadounidense',     '1974-11-16', 'Inglés'),   -- 48
+('Amy Poehler',           'Estadounidense',     '1971-09-16', 'Inglés'),   -- 49
+('Jon Watts',             'Estadounidense',     '1981-06-28', 'Inglés'),   -- 50
+('Greta Gerwig',          'Estadounidense',     '1983-08-04', 'Inglés'),   -- 51
+('Margot Robbie',         'Australiana',        '1990-07-02', 'Inglés'),   -- 52
+('Sean Baker',            'Estadounidense',     '1971-02-26', 'Inglés'),   -- 53
+('Mikey Madison',         'Estadounidense',     '1999-03-25', 'Inglés'),   -- 54
+('Brady Corbet',          'Estadounidense',     '1988-08-17', 'Inglés'),   -- 55
+('Adrien Brody',          'Estadounidense',     '1973-04-14', 'Inglés'),   -- 56
+('Ryan Coogler',          'Estadounidense',     '1986-05-23', 'Inglés'),   -- 57
+('Michael B. Jordan',     'Estadounidense',     '1987-02-09', 'Inglés'),   -- 58
+('Christopher McQuarrie', 'Estadounidense',     '1968-10-12', 'Inglés'),   -- 59
+('Dean DeBlois',          'Canadiense',         '1970-06-07', 'Inglés'),   -- 60
+('Mason Thames',          'Estadounidense',     '2007-07-10', 'Inglés'),   -- 61
+('James Gunn',            'Estadounidense',     '1966-08-05', 'Inglés'),   -- 62
+('David Corenswet',       'Estadounidense',     '1993-07-08', 'Inglés'),   -- 63
+('Julia Garner',          'Estadounidense',     '1994-02-01', 'Inglés'),   -- 64
+('Dean Fleischer Camp',   'Estadounidense',     '1984-02-28', 'Inglés'),   -- 65
+('Maia Kealoha',          'Estadounidense',     '2016-12-15', 'Inglés'),   -- 66
+('Ridley Scott',          'Británica',          '1937-11-30', 'Inglés'),   -- 67
+('Paul Mescal',           'Irlandesa',          '1996-02-02', 'Inglés'),   -- 68
+('David Derrick Jr.',     'Estadounidense',     '1978-06-22', 'Inglés'),   -- 69
+('Auli''i Cravalho',      'Estadounidense',     '2000-11-22', 'Inglés');   -- 70
+
 
 -- ---------------------------------------------------------------------
 -- 7. PELICULA (10)
@@ -133,7 +168,27 @@ INSERT INTO Pelicula (Nombre, Fecha_Estreno, Fecha_Retiro, Duracion_Minutos, Cla
 ('Street Fighter',                              '2026-10-15', NULL,         125, '15+'),   -- 7
 ('Clayface',                                    '2026-10-22', NULL,         105, '15+'),   -- 8
 ('El Bosque Olvidado: Wildwood',                '2026-10-29', NULL,         100, '7+'),    -- 9
-('Sensatez y Sentimiento',                      '2026-10-29', NULL,         120, '12+');   -- 10
+('Sensatez y Sentimiento',                      '2026-10-29', NULL,         120, '12+'),   -- 10
+('Oppenheimer',                          '2026-01-15', '2026-03-05', 180, '15+'),   -- 11
+('Dune: Parte Dos',                      '2026-01-22', '2026-03-12', 166, '12+'),   -- 12
+('Interstellar',                         '2026-02-05', '2026-03-26', 169, '12+'),   -- 13
+('The Batman',                           '2026-02-12', '2026-04-02', 176, '15+'),   -- 14
+('Mad Max: Furia en el Camino',          '2026-02-19', '2026-04-09', 120, '18+'),   -- 15
+('Nosotros',                             '2026-02-26', '2026-04-16', 116, '18+'),   -- 16
+('Wicked',                               '2026-03-05', '2026-04-23', 160, '7+'),    -- 17
+('Intensamente 2',                       '2026-03-12', '2026-05-07',  96, 'TP'),    -- 18
+('Spider-Man: Sin Camino a Casa',        '2026-03-19', '2026-05-14', 148, '12+'),   -- 19
+('Barbie',                               '2026-03-26', '2026-05-14', 114, '12+'),   -- 20
+('Anora',                                '2026-04-02', '2026-05-21', 139, '18+'),   -- 21
+('El Brutalista',                        '2026-04-09', '2026-05-28', 215, '18+'),   -- 22
+('Pecadores',                            '2026-04-16', '2026-06-04', 137, '18+'),   -- 23
+('Misión Imposible: Sentencia Final',    '2026-04-23', '2026-06-11', 169, '12+'),   -- 24
+('Cómo Entrenar a tu Dragón',            '2026-05-07', '2026-06-25', 125, '7+'),    -- 25
+('Superman',                             '2026-05-14', '2026-07-02', 129, '12+'),   -- 26
+('Armas',                                '2026-05-21', '2026-07-09', 128, '18+'),   -- 27
+('Lilo y Stitch',                        '2026-05-28', '2026-07-16', 108, 'TP'),    -- 28
+('Gladiador II',                         '2026-06-04', '2026-07-23', 148, '15+'),   -- 29
+('Moana 2',                              '2026-06-11', '2026-08-06', 100, 'TP');    -- 30
 
 -- ---------------------------------------------------------------------
 -- 8. PELICULA_GENERO (19)
@@ -148,7 +203,27 @@ INSERT INTO Pelicula_Genero (Genero, Pelicula_Id_Pelicula) VALUES
 ('Acción', 7),
 ('Terror', 8),    ('Acción', 8),
 ('Animación', 9), ('Fantasía', 9),
-('Drama', 10),    ('Romance', 10);
+('Drama', 10),    ('Romance', 10)
+('Drama', 11),            ('Biografía', 11),
+('Ciencia ficción', 12),  ('Aventura', 12),
+('Ciencia ficción', 13),  ('Drama', 13),
+('Acción', 14),           ('Suspenso', 14),
+('Acción', 15),           ('Ciencia ficción', 15),
+('Terror', 16),           ('Suspenso', 16),
+('Musical', 17),          ('Fantasía', 17),
+('Animación', 18),        ('Familiar', 18),
+('Acción', 19),           ('Ciencia ficción', 19),
+('Comedia', 20),          ('Fantasía', 20),
+('Drama', 21),            ('Comedia', 21),
+('Drama', 22),            ('Historia', 22),
+('Terror', 23),           ('Drama', 23),
+('Acción', 24),          ('Suspenso', 24),
+('Animación', 25),        ('Aventura', 25),
+('Acción', 26),           ('Ciencia ficción', 26),
+('Terror', 27),           ('Misterio', 27),
+('Familiar', 28),         ('Comedia', 28),
+('Acción', 29),           ('Historia', 29),
+('Animación', 30),        ('Musical', 30);
 
 -- ---------------------------------------------------------------------
 -- 9. ACT_DIR_PEL (40 participaciones)
@@ -169,7 +244,48 @@ INSERT INTO Act_Dir_Pel (Act_Dir_Id_Actor_Director, Pelicula_Id_Pelicula, Rol) V
 (29, 7, 'Reparto'), (30, 7, 'Reparto'),
 (31, 8, 'Protagonista'), (32, 8, 'Reparto'),
 (33, 9, 'Voz principal'), (34, 9, 'Voz principal'),
-(35, 10, 'Protagonista'), (36, 10, 'Protagonista');
+(35, 10, 'Protagonista'), (36, 10, 'Protagonista'),
+-- 11 Oppenheimer
+(1, 11, 'Director'),  (37, 11, 'Protagonista'), (11, 11, 'Reparto'), (27, 11, 'Reparto'),
+-- 12 Dune: Parte Dos
+(38, 12, 'Director'), (39, 12, 'Protagonista'), (14, 12, 'Reparto'),
+-- 13 Interstellar
+(1, 13, 'Director'),  (40, 13, 'Protagonista'), (12, 13, 'Reparto'), (11, 13, 'Reparto'),
+-- 14 The Batman
+(41, 14, 'Director'), (15, 14, 'Protagonista'),
+-- 15 Mad Max
+(42, 15, 'Director'), (16, 15, 'Protagonista'), (43, 15, 'Protagonista'),
+-- 16 Nosotros
+(44, 16, 'Director'), (17, 16, 'Protagonista'), (45, 16, 'Reparto'),
+-- 17 Wicked
+(46, 17, 'Director'), (47, 17, 'Protagonista'),
+-- 18 Intensamente 2
+(48, 18, 'Director'), (49, 18, 'Voz principal'),
+-- 19 Spider-Man: Sin Camino a Casa
+(50, 19, 'Director'), (13, 19, 'Protagonista'), (14, 19, 'Reparto'),
+-- 20 Barbie
+(51, 20, 'Director'), (52, 20, 'Protagonista'),
+-- 21 Anora
+(53, 21, 'Director'), (54, 21, 'Protagonista'),
+-- 22 El Brutalista
+(55, 22, 'Director'), (56, 22, 'Protagonista'),
+-- 23 Pecadores
+(57, 23, 'Director'), (58, 23, 'Protagonista'),
+-- 24 Misión Imposible
+(59, 24, 'Director'), (22, 24, 'Protagonista'),
+-- 25 Cómo Entrenar a tu Dragón
+(60, 25, 'Director'), (61, 25, 'Protagonista'),
+-- 26 Superman
+(62, 26, 'Director'), (63, 26, 'Protagonista'),
+-- 27 Armas
+(3, 27, 'Director'),  (64, 27, 'Protagonista'),
+-- 28 Lilo y Stitch
+(65, 28, 'Director'), (66, 28, 'Voz principal'),
+-- 29 Gladiador II
+(67, 29, 'Director'), (68, 29, 'Protagonista'),
+-- 30 Moana 2
+(69, 30, 'Director'), (70, 30, 'Voz principal');
+
 
 -- ---------------------------------------------------------------------
 -- 10. FUNCION (36)
@@ -212,7 +328,11 @@ INSERT INTO Funcion (Fecha_Hora_Inicio, Idioma, Pelicula_Id_Pelicula, Sala_Id_Sa
 ('2026-10-17 19:30', 'Español',             4, 7),   -- 33
 ('2026-10-23 18:00', 'Español',             8, 3),   -- 34
 ('2026-10-30 21:00', 'Español',            10, 1),   -- 35
-('2026-10-30 22:00', 'Español',             9, 6);   -- 36
+('2026-10-30 22:00', 'Español',             9, 6),   -- 36
+('2026-10-04 11:00', 'Español',             6, 5),   -- 37 evento pasado: Shaun el Cordero con charla
+('2026-10-18 18:00', 'Español',             7, 5),   -- 38 evento: Street Fighter con charla
+('2026-10-21 19:00', 'Español',             8, 5),   -- 39 evento: avant-première Clayface
+('2026-10-25 17:00', 'Inglés subtitulado',  4, 5);   -- 40 evento: Digger con charla
 
 -- ---------------------------------------------------------------------
 -- 11. ESPECTADOR (35)
@@ -305,7 +425,12 @@ INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,
 ('2026-10-08', 18000, 'Tarjeta',        2,  1,  6, 1, 35),  -- 39
 -- Función 25 casi agotada (40 + 38 = 78 de 80 puestos)
 ('2026-10-08', 18000, 'Transferencia', 40,  1, 10, 1, 25),  -- 40
-('2026-10-08', 18000, 'Transferencia', 38,  2, 10, 1, 25);  -- 41
+('2026-10-08', 18000, 'Transferencia', 38,  2, 10, 1, 25),  -- 41
+('2026-09-25', 18000, 'Transferencia', 40, 10, 10, 1, 37),   -- 42 evento 10-04 (9 días antes)
+('2026-10-08', 18000, 'Transferencia', 30, 10, 10, 1, 38),   -- 43 evento 10-18 (10 días antes)
+('2026-10-08', 18000, 'Tarjeta',       20, 10, 14, 1, 39),   -- 44 evento 10-21 (13 días antes)
+('2026-10-08', 18000, 'Tarjeta',       15, 10, 20, 1, 40);   -- 45 evento 10-25 (17 días antes)
+
 
 -- ---------------------------------------------------------------------
 -- 13. COLABORADOR (4)
@@ -382,7 +507,11 @@ INSERT INTO Contrato (Estado, Fecha_inicio, Fecha_fin, Act_Dir_Id_Actor_Dir, Fun
 ('Vigente',    '2026-10-14', '2026-10-16', 29, 29),   -- Jason Momoa, Street Fighter
 ('Vigente',    '2026-10-16', '2026-10-18', 28, 32),   -- Justin Fletcher, Shaun el Cordero
 ('Cancelado',  '2026-10-22', '2026-10-24', 31, 34),   -- Tom Rhys Harries, Clayface
-('Vigente',    '2026-10-29', '2026-10-31', 36, 35);   -- Daisy Ridley, Sensatez y Sentimiento
+('Vigente',    '2026-10-29', '2026-10-31', 36, 35),   -- Daisy Ridley, Sensatez y Sentimiento
+('Finalizado', '2026-10-03', '2026-10-05', 28, 37),   -- 13 Justin Fletcher, Shaun el Cordero
+('Vigente',    '2026-10-17', '2026-10-19', 30, 38),   -- 14 Noah Centineo, Street Fighter
+('Vigente',    '2026-10-20', '2026-10-22', 32, 39),   -- 15 Eddie Marsan, Clayface
+('Vigente',    '2026-10-24', '2026-10-26', 25, 40);   -- 16 Riz Ahmed, Digger
 
 -- ---------------------------------------------------------------------
 -- VERIFICACIÓN: Conteo final por tabla
