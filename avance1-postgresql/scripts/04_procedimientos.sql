@@ -369,6 +369,11 @@ BEGIN
       INTO p_total_venta
       FROM Venta v
       WHERE v.Id_Venta = p_id_venta;
+
+EXCEPTION
+    WHEN raise_exception THEN RAISE;
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error inesperado: %', SQLERRM;
 END;
 $$;
 
@@ -434,6 +439,11 @@ BEGIN
        AND fecha_fin < p_fecha_corte;
  
     GET DIAGNOSTICS p_cerrados = ROW_COUNT;
+
+EXCEPTION
+    WHEN raise_exception THEN RAISE;
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error inesperado: %', SQLERRM;
 END;
 $$;
 
