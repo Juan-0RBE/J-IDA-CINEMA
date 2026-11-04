@@ -369,6 +369,11 @@ BEGIN
       INTO p_total_venta
       FROM Venta v
       WHERE v.Id_Venta = p_id_venta;
+
+EXCEPTION
+    WHEN raise_exception THEN RAISE;
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error inesperado: %', SQLERRM;
 END;
 $$;
 
@@ -434,6 +439,11 @@ BEGIN
        AND fecha_fin < p_fecha_corte;
  
     GET DIAGNOSTICS p_cerrados = ROW_COUNT;
+
+EXCEPTION
+    WHEN raise_exception THEN RAISE;
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error inesperado: %', SQLERRM;
 END;
 $$;
 
@@ -467,3 +477,71 @@ ROLLBACK;   -- Deshace los contratos de prueba
 -- caso fallido
 -- Fecha de corte futura: lanza "La fecha de corte (...) no puede ser futura".
 CALL sp_cerrar_contratos_vencidos(CURRENT_DATE + 30, 10);
+
+-- =====================================================================
+-- Procedimiento con agregaciones
+-- =====================================================================
+ /*
+  Procedimiento: Reporte de ingresos por sede en un rango de fechas.
+  Tipo: Reporte con agregación.
+  Tablas usadas: Sede, Sala, Funcion, Venta.
+*/
+ 
+CREATE OR REPLACE PROCEDURE realizar_reporte_ingresos_sede(
+    p_desde DATE,
+    p_hasta DATE
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_reporte TEXT;
+BEGIN
+    -- Las fechas son obligatorias
+    IF p_desde IS NULL OR p_hasta IS NULL THEN
+        RAISE EXCEPTION 'Las fechas desde y hasta son obligatorias';
+    END IF;
+ 
+    -- El rango debe ser coherente
+    IF p_hasta < p_desde THEN
+        RAISE EXCEPTION 'La fecha hasta (%) no puede ser anterior a la fecha desde (%)',
+            p_hasta, p_desde;
+    END IF;
+ 
+    -- Se calcula el ingreso por sede (SUM + GROUP BY) y se junta todo en un solo texto
+    SELECT string_agg(r.Nombre || ': ' || r.total, chr(10) ORDER BY r.total DESC)
+    INTO v_reporte
+    FROM (
+        SELECT se.Nombre,
+               SUM(v.Cantidad * v.Precio_Unitario) AS total
+        FROM Venta v
+        JOIN Funcion f ON f.Id_Funcion = v.Funcion_Id_Funcion
+        JOIN Sala s    ON s.Id_Sala    = f.Sala_Id_Sala
+        JOIN Sede se   ON se.Id_Sede   = s.Sede_Id_Sede
+        WHERE v.Fecha >= p_desde
+          AND v.Fecha <  p_hasta + 1
+        GROUP BY se.Nombre
+    ) r;
+ 
+    -- Si no hubo ventas, el texto queda vacío (NULL)
+    IF v_reporte IS NULL THEN
+        RAISE NOTICE 'No hay ventas entre % y %', p_desde, p_hasta;
+    ELSE
+        RAISE NOTICE 'Ingresos por sede del % al %: %', p_desde, p_hasta, chr(10) || v_reporte;
+    END IF;
+ 
+EXCEPTION
+    WHEN raise_exception THEN
+        RAISE;
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error inesperado al generar el reporte: %', SQLERRM;
+END;
+$$;
+ 
+-- Caso exitoso
+CALL sp_reporte_ingresos_sede('2026-01-01', '2026-12-31');
+ 
+-- Caso fallido: fechas nulas
+CALL sp_reporte_ingresos_sede(NULL, '2026-12-31');
+ 
+-- Caso fallido: rango invertido
+CALL sp_reporte_ingresos_sede('2026-12-31', '2026-01-01');
