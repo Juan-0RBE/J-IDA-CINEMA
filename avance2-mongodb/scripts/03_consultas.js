@@ -152,4 +152,91 @@ printjson(
   ).sort({ id_funcion: 1 }).toArray()
 );
 
+/* ============================================================================
+   CONSULTA 5: Conteo de funciones especiales por formato y su estado
+   Colección: requisitos_proyeccion
+   Descripción: Utiliza un aggregation pipeline para agrupar por formato de función
+                especial, contando cuántas existen y cuántos ítems de checklist 
+                han sido verificados en total.
+   ============================================================================ */
+print("\n=== Consulta 5: Resumen de funciones especiales por formato (Aggregate) ===");
+printjson(
+  db.requisitos_proyeccion.aggregate([
+    // Se desglosa el array de checklist para analizar item por item
+    {
+      $unwind: "$checklist"
+    },
+    // Se filtran solo los ítems que son obligatorios
+    {
+      $match: {
+        "checklist.obligatorio": true
+      }
+    },
+    // Se agrupa por el formato de la proyección
+    {
+      $group: {
+        _id: "$formato",
+        total_funciones_formato: { $addToSet: "$id_funcion" },
+        total_checks_obligatorios: { $sum: 1 },
+        checks_verificados: {
+          $sum: {
+            $cond: [{ $eq: ["$checklist.verificado", true] }, 1, 0]
+          }
+        }
+      }
+    },
+    // Se proyecta la salida para calcular el total de funciones
+    {
+      $project: {
+        _id: 0,
+        formato: "$_id",
+        total_funciones: { $size: "$total_funciones_formato" },
+        total_checks_obligatorios: 1,
+        checks_verificados: 1,
+        porcentaje_verificacion: {
+          $cond: [
+            { $eq: ["$total_checks_obligatorios", 0] },
+            0,
+            { $multiply: [{ $divide: ["$checks_verificados", "$total_checks_obligatorios"] }, 100] }
+          ]
+        }
+      }
+    },
+    // Se ordena por la cantidad de funciones de mayor a menor
+    {
+      $sort: {
+        total_funciones: -1
+      }
+    }
+  ]).toArray()
+);
+
+/* ============================================================================
+   CONSULTA 6: Reportes de incidentes críticos o de alta severidad abiertos
+   Colección: reportes_incidentes
+   Descripción: Busca mediante una consulta find los incidentes con severidad
+                crítica que aún se encuentran en estado abierto.
+   ============================================================================ */
+print("\n=== Consulta 6: Incidentes críticos o altos pendientes de resolver ===");
+printjson(
+  db.reportes_incidentes.find(
+    // Filtros por severidad alta/crítica y estado abierto
+    {
+      severidad: { $in: ["alta", "critica"] },
+      estado: "abierto"
+    },
+    // Proyección de los campos relevantes
+    {
+      _id: 0,
+      tipo: 1,
+      severidad: 1,
+      estado: 1,
+      id_sede: 1,
+      id_sala: 1,
+      descripcion: 1,
+      fecha_hora: 1
+    }
+  ).sort({ fecha_hora: 1 }).toArray()
+);
+
 // FIN DEL SCRIPT
