@@ -94,14 +94,12 @@ printjson(
     {
       $unwind: "$elenco"
     },
-    // Se agrupa por el ID, nombre y rol
+    // Se agrupa por el ID
     {
       $group: {
-        _id: {
-          id: "$elenco.id_actor_director",
-          nombre: "$elenco.nombre",
-          rol: "$elenco.rol"
-        },
+        _id: "$elenco.id_actor_director",
+        nombre: { $first: "$elenco.nombre" },
+        roles: { $addToSet: "$elenco.rol" },
         total_peliculas: { $sum: 1 },
         titulos_peliculas: { $push: "$titulo" } // Se crea un array con los nombres de las películas en las que aparece
       }
@@ -120,8 +118,8 @@ printjson(
     {
       $project: {
         _id: 0,
-        actor_director: "$_id.nombre",
-        rol: "$_id.rol",
+        actor_director: "$nombre",
+        roles: 1,
         total_peliculas: 1,
         titulos_peliculas: 1
       }
