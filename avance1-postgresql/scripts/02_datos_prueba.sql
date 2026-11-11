@@ -9,10 +9,10 @@
 -- Identidad que reflejan los datos:
 --   * 2 sedes (Bogotá, Sibaté)
 --   * 7 salas: 6 generales (80 puestos) + 1 de eventos (45 puestos) = 525
---   * 36 actores/directores registrados (10 directores + 26 actores)
+--   * 70 actores/directores registrados (27 directores + 43 actores)
 --   * Fecha de referencia: 2026-10-08 (hay funciones pasadas y futuras)
--- Cantidades: 36 actores/directores, 35 espectadores, 36 funciones,
---             41 ventas (mínimo exigido: 30 en cada uno).
+-- Cantidades: 36 actores/directores, 35 espectadores, 40 funciones,
+--             45 ventas (mínimo exigido: 30 en cada uno).
 --
 -- Valores de dominio usados (coinciden con los CHECK de 01_creacion_tablas.sql):
 --   Tipo_Sala: 'General' / 'Eventos'     Clasificacion: TP, 7+, 12+, 15+, 18+
@@ -78,7 +78,7 @@ INSERT INTO Tipo_Boleta (Nombre, Aplica_para, Precio) VALUES
 ('Día del cine',  'Todos los miércoles',       9000.00);
 
 -- ---------------------------------------------------------------------
--- 6. Actor_Director (36): Fechas de nacimiento completadas
+-- 6. Actor_Director (70): Fechas de nacimiento completadas
 -- ---------------------------------------------------------------------
 INSERT INTO Actor_Director (Nombre, Nacionalidad, Fecha_Nacimiento, Idioma) VALUES
 -- Directores
@@ -191,7 +191,7 @@ INSERT INTO Pelicula (Nombre, Fecha_Estreno, Fecha_Retiro, Duracion_Minutos, Cla
 ('Moana 2',                              '2026-06-11', '2026-08-06', 100, 'TP');    -- 30
 
 -- ---------------------------------------------------------------------
--- 8. PELICULA_GENERO (19)
+-- 8. PELICULA_GENERO (59)
 -- ---------------------------------------------------------------------
 INSERT INTO Pelicula_Genero (Genero, Pelicula_Id_Pelicula) VALUES
 ('Aventura', 1),  ('Drama', 1),
@@ -226,7 +226,7 @@ INSERT INTO Pelicula_Genero (Genero, Pelicula_Id_Pelicula) VALUES
 ('Animación', 30),        ('Musical', 30);
 
 -- ---------------------------------------------------------------------
--- 9. ACT_DIR_PEL (40 participaciones)
+-- 9. ACT_DIR_PEL (88 participaciones)
 -- ---------------------------------------------------------------------
 INSERT INTO Act_Dir_Pel (Act_Dir_Id_Actor_Director, Pelicula_Id_Pelicula, Rol) VALUES
 -- Directores
@@ -288,7 +288,7 @@ INSERT INTO Act_Dir_Pel (Act_Dir_Id_Actor_Director, Pelicula_Id_Pelicula, Rol) V
 
 
 -- ---------------------------------------------------------------------
--- 10. FUNCION (36)
+-- 10. FUNCION (40)
 -- ---------------------------------------------------------------------
 INSERT INTO Funcion (Fecha_Hora_Inicio, Idioma, Pelicula_Id_Pelicula, Sala_Id_Sala) VALUES
 -- Pasadas
@@ -377,7 +377,7 @@ VALUES
 ('Juan José Herrera', '1023456815', '2010-06-20', '3001000035', 'acudiente.juan@correo.com');
 
 -- ---------------------------------------------------------------------
--- 12. VENTA (41)
+-- 12. VENTA (45)
 -- ---------------------------------------------------------------------
 INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,
                    Staff_Id_Staff, Espectador_Id_Espectador,
@@ -493,7 +493,7 @@ INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitari
 (33,  8, 3, 18000);
 
 -- ---------------------------------------------------------------------
--- 17. CONTRATO (12)
+-- 17. CONTRATO (16)
 -- ---------------------------------------------------------------------
 INSERT INTO Contrato (Estado, Fecha_inicio, Fecha_fin, Act_Dir_Id_Actor_Dir, Funcion_Id_Funcion) VALUES
 ('Finalizado', '2026-09-25', '2026-09-27',  1,  1),   -- Nolan, La Odisea
