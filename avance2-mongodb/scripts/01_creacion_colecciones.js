@@ -171,7 +171,9 @@ db.createCollection("requisitos_proyeccion", {
             anticipacion_dias: {
               bsonType: "number", minimum: 7, multipleOf: 1,
               description: "Regla del negocio: reserva con mínimo 7 días de anticipación"
-            }
+            },
+             observaciones: { bsonType: "string", minLength: 1,
+                 description: "Nota libre del equipo sobre la función (opcional)" }
           }
         }
       },
