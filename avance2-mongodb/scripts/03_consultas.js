@@ -2,10 +2,12 @@
    J'IDA Cinema - 03_consultas.js
 
    CONTENIDO
-     Consulta 1. Top 5 películas por calificación promedio   (aggregate)
+     Consulta 1. Top 5 películas por calificación promedio    (aggregate)
      Consulta 2. Fallas técnicas por equipo en sede 1, sala 3 (aggregate)
      Consulta 3. Top 5 actores/directores con más películas   (aggregate)
      Consulta 4. Funciones con observaciones anotadas         (find)
+     Consulta 5. Resumen de funciones especiales por formato  (aggregate)
+     Consulta 6. Incidentes altos o críticos abiertos         (find)
    ============================================================================ */
 
 use("jida_cinema");
@@ -104,10 +106,11 @@ printjson(
         titulos_peliculas: { $push: "$titulo" } // Se crea un array con los nombres de las películas en las que aparece
       }
     },
-    // Se ordena de mayor a menor según la cantidad de películas
+    // Se ordena de mayor a menor según la cantidad de películas, y en caso de empate por nombre
     {
       $sort: {
-        total_peliculas: -1
+        total_peliculas: -1,
+        nombre: 1
       }
     },
     // Se filtran solo los 5 principales, es decir, los que tienen mayor número de participaciones
