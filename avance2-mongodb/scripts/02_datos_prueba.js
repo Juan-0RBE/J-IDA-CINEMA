@@ -2677,23 +2677,27 @@ db.reportes_incidentes.insertMany([
       }
     ]
   },
-  {
+ {
     tipo: "queja_servicio",
     fecha_hora: ISODate("2026-10-07T19:50:00Z"),
     id_sede: 1,
     id_sala: 4,
     id_funcion: 18,
-    id_staff_reporta: 1,
+    id_staff_reporta: 12,
     id_espectador: 22,
     severidad: "media",
     estado: "resuelto",
-    descripcion: "Se cobró tarifa general en miércoles, día del cine.",
-    detalle: { categoria: "precio", compensacion: "Reembolso de la diferencia" },
+    descripcion: "No se informó a tiempo la causa ni la duración del corte de energía durante la función.",
+    detalle: { categoria: "atencion", compensacion: "Boleta de cortesía para otra función" },
     seguimiento: [
-      { fecha: ISODate("2026-10-07T20:00:00Z"), accion: "Se verificó la venta", id_staff: 1 },
+      {
+        fecha: ISODate("2026-10-07T20:00:00Z"),
+        accion: "Se atendió al espectador y se explicó el motivo de la interrupción",
+        id_staff: 12
+      },
       {
         fecha: ISODate("2026-10-07T20:50:00Z"),
-        accion: "Se reembolsó la diferencia de precio",
+        accion: "Se entregó una boleta de cortesía y se reforzó el protocolo de aviso al público en cortes de energía",
         id_staff: 10
       }
     ]
