@@ -203,7 +203,7 @@ INSERT INTO Pelicula_Genero (Genero, Pelicula_Id_Pelicula) VALUES
 ('Acción', 7),
 ('Terror', 8),    ('Acción', 8),
 ('Animación', 9), ('Fantasía', 9),
-('Drama', 10),    ('Romance', 10)
+('Drama', 10),    ('Romance', 10),
 ('Drama', 11),            ('Biografía', 11),
 ('Ciencia ficción', 12),  ('Aventura', 12),
 ('Ciencia ficción', 13),  ('Drama', 13),
