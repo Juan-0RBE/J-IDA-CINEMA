@@ -426,10 +426,10 @@ INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,
 -- Función 25 casi agotada (40 + 38 = 78 de 80 puestos)
 ('2026-10-08', 18000, 'Transferencia', 40,  1, 10, 1, 25),  -- 40
 ('2026-10-08', 18000, 'Transferencia', 38,  2, 10, 1, 25),  -- 41
-('2026-09-25', 18000, 'Transferencia', 40, 10, 10, 1, 37),   -- 42 evento 10-04 (9 días antes)
-('2026-10-08', 18000, 'Transferencia', 30, 10, 10, 1, 38),   -- 43 evento 10-18 (10 días antes)
-('2026-10-08', 18000, 'Tarjeta',       20, 10, 14, 1, 39),   -- 44 evento 10-21 (13 días antes)
-('2026-10-08', 18000, 'Tarjeta',       15, 10, 20, 1, 40);   -- 45 evento 10-25 (17 días antes)
+('2026-09-25', 18000, 'Transferencia', 40, 2, 10, 1, 37),   -- 42 evento 10-04 (9 días antes)
+('2026-10-08', 18000, 'Transferencia', 30, 2, 10, 1, 38),   -- 43 evento 10-18 (10 días antes)
+('2026-10-08', 18000, 'Tarjeta',       20, 2, 14, 1, 39),   -- 44 evento 10-21 (13 días antes)
+('2026-10-08', 18000, 'Tarjeta',       15, 2, 20, 1, 40);   -- 45 evento 10-25 (17 días antes)
 
 
 -- ---------------------------------------------------------------------
@@ -512,6 +512,139 @@ INSERT INTO Contrato (Estado, Fecha_inicio, Fecha_fin, Act_Dir_Id_Actor_Dir, Fun
 ('Vigente',    '2026-10-17', '2026-10-19', 30, 38),   -- 14 Noah Centineo, Street Fighter
 ('Vigente',    '2026-10-20', '2026-10-22', 32, 39),   -- 15 Eddie Marsan, Clayface
 ('Vigente',    '2026-10-24', '2026-10-26', 25, 40);   -- 16 Riz Ahmed, Digger
+
+
+-- ---------------------------------------------------------------------
+-- 18. ASIENTO (525)
+--    Sala General: filas A-H, sillas 1-10. Sala de Eventos: filas A-E, sillas 1-9.
+-- ---------------------------------------------------------------------
+INSERT INTO Asiento (Fila, Numero, Sala_Id_Sala)
+SELECT chr(64 + fi.n), nu.n, s.Id_Sala
+FROM Sala s
+CROSS JOIN LATERAL generate_series(1, CASE s.Tipo_Sala WHEN 'General' THEN 8  ELSE 5 END) AS fi(n)
+CROSS JOIN LATERAL generate_series(1, CASE s.Tipo_Sala WHEN 'General' THEN 10 ELSE 9 END) AS nu(n)
+ORDER BY s.Id_Sala, fi.n, nu.n;
+ 
+-- ---------------------------------------------------------------------
+-- 19. VENTA_ASIENTO (268)
+--    Cada fila del VALUES es un bloque de sillas contiguas en una fila:
+--    (venta, función, fila, silla_desde, silla_hasta).
+-- ---------------------------------------------------------------------
+INSERT INTO Venta_Asiento (Venta_Id_Venta, Asiento_Id_Asiento, Funcion_Id_Funcion)
+SELECT b.venta, a.Id_Asiento, b.funcion
+FROM (VALUES
+-- Venta 1: función 1 (sala 1), 2 silla(s)
+(1, 1, 'A', 1, 2),
+-- Venta 2: función 1 (sala 1), 1 silla(s)
+(2, 1, 'A', 3, 3),
+-- Venta 3: función 2 (sala 2), 3 silla(s)
+(3, 2, 'A', 1, 3),
+-- Venta 4: función 2 (sala 2), 2 silla(s)
+(4, 2, 'A', 4, 5),
+-- Venta 5: función 3 (sala 3), 2 silla(s)
+(5, 3, 'A', 1, 2),
+-- Venta 6: función 4 (sala 4), 1 silla(s)
+(6, 4, 'A', 1, 1),
+-- Venta 7: función 4 (sala 4), 2 silla(s)
+(7, 4, 'A', 2, 3),
+-- Venta 8: función 5 (sala 6), 2 silla(s)
+(8, 5, 'A', 1, 2),
+-- Venta 9: función 5 (sala 6), 4 silla(s)
+(9, 5, 'A', 3, 6),
+-- Venta 10: función 6 (sala 7), 2 silla(s)
+(10, 6, 'A', 1, 2),
+-- Venta 11: función 7 (sala 6), 1 silla(s)
+(11, 7, 'A', 1, 1),
+-- Venta 12: función 8 (sala 1), 3 silla(s)
+(12, 8, 'A', 1, 3),
+-- Venta 13: función 9 (sala 2), 2 silla(s)
+(13, 9, 'A', 1, 2),
+-- Venta 14: función 10 (sala 3), 3 silla(s)
+(14, 10, 'A', 1, 3),
+-- Venta 15: función 11 (sala 7), 2 silla(s)
+(15, 11, 'A', 1, 2),
+-- Venta 16: función 12 (sala 4), 2 silla(s)
+(16, 12, 'A', 1, 2),
+-- Venta 17: función 13 (sala 1), 1 silla(s)
+(17, 13, 'A', 1, 1),
+-- Venta 18: función 14 (sala 6), 4 silla(s)
+(18, 14, 'A', 1, 4),
+-- Venta 19: función 15 (sala 7), 2 silla(s)
+(19, 15, 'A', 1, 2),
+-- Venta 20: función 16 (sala 3), 2 silla(s)
+(20, 16, 'A', 1, 2),
+-- Venta 21: función 17 (sala 2), 3 silla(s)
+(21, 17, 'A', 1, 3),
+-- Venta 22: función 18 (sala 4), 2 silla(s)
+(22, 18, 'A', 1, 2),
+-- Venta 23: función 18 (sala 4), 1 silla(s)
+(23, 18, 'A', 3, 3),
+-- Venta 24: función 19 (sala 1), 2 silla(s)
+(24, 19, 'A', 1, 2),
+-- Venta 25: función 19 (sala 1), 4 silla(s)
+(25, 19, 'A', 3, 6),
+-- Venta 26: función 20 (sala 2), 2 silla(s)
+(26, 20, 'A', 1, 2),
+-- Venta 27: función 20 (sala 2), 2 silla(s)
+(27, 20, 'A', 3, 4),
+-- Venta 28: función 21 (sala 3), 3 silla(s)
+(28, 21, 'A', 1, 3),
+-- Venta 29: función 22 (sala 4), 2 silla(s)
+(29, 22, 'A', 1, 2),
+-- Venta 30: función 23 (sala 6), 2 silla(s)
+(30, 23, 'A', 1, 2),
+-- Venta 31: función 24 (sala 7), 2 silla(s)
+(31, 24, 'A', 1, 2),
+-- Venta 32: función 26 (sala 6), 1 silla(s)
+(32, 26, 'A', 1, 1),
+-- Venta 33: función 27 (sala 2), 3 silla(s)
+(33, 27, 'A', 1, 3),
+-- Venta 34: función 29 (sala 1), 2 silla(s)
+(34, 29, 'A', 1, 2),
+-- Venta 35: función 30 (sala 2), 2 silla(s)
+(35, 30, 'A', 1, 2),
+-- Venta 36: función 30 (sala 2), 2 silla(s)
+(36, 30, 'A', 3, 4),
+-- Venta 37: función 31 (sala 6), 2 silla(s)
+(37, 31, 'A', 1, 2),
+-- Venta 38: función 33 (sala 7), 3 silla(s)
+(38, 33, 'A', 1, 3),
+-- Venta 39: función 35 (sala 1), 2 silla(s)
+(39, 35, 'A', 1, 2),
+-- Venta 40: función 25 (sala 1), 40 silla(s)
+(40, 25, 'A', 1, 10),
+(40, 25, 'B', 1, 10),
+(40, 25, 'C', 1, 10),
+(40, 25, 'D', 1, 10),
+-- Venta 41: función 25 (sala 1), 38 silla(s)
+(41, 25, 'E', 1, 10),
+(41, 25, 'F', 1, 10),
+(41, 25, 'G', 1, 10),
+(41, 25, 'H', 1, 8),
+-- Venta 42: función 37 (sala 5), 40 silla(s)
+(42, 37, 'A', 1, 9),
+(42, 37, 'B', 1, 9),
+(42, 37, 'C', 1, 9),
+(42, 37, 'D', 1, 9),
+(42, 37, 'E', 1, 4),
+-- Venta 43: función 38 (sala 5), 30 silla(s)
+(43, 38, 'A', 1, 9),
+(43, 38, 'B', 1, 9),
+(43, 38, 'C', 1, 9),
+(43, 38, 'D', 1, 3),
+-- Venta 44: función 39 (sala 5), 20 silla(s)
+(44, 39, 'A', 1, 9),
+(44, 39, 'B', 1, 9),
+(44, 39, 'C', 1, 2),
+-- Venta 45: función 40 (sala 5), 15 silla(s)
+(45, 40, 'A', 1, 9),
+(45, 40, 'B', 1, 6)
+) AS b(venta, funcion, fila, desde, hasta)
+JOIN Funcion f ON f.Id_Funcion = b.funcion
+JOIN Asiento a ON a.Sala_Id_Sala = f.Sala_Id_Sala
+              AND a.Fila = b.fila
+              AND a.Numero BETWEEN b.desde AND b.hasta
+ORDER BY b.venta, a.Fila, a.Numero;
 
 -- ---------------------------------------------------------------------
 -- VERIFICACIÓN: Conteo final por tabla
