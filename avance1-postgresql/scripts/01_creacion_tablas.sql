@@ -1,4 +1,4 @@
-/* ============================================================================
+x/* ============================================================================
    BASES DE DATOS 2
    Creacion de tablas
 
@@ -18,6 +18,8 @@
        guardan el valor vigente al momento de la venta; no cambian después.
      - Los valores permitidos en los CHECK de dominio (sección 5) deben
        coincidir con los usados en 02_datos_prueba.sql.
+     - Asignación de asientos: las tablas Asiento y Venta_Asiento se crean
+       aquí; sus datos y triggers se cargan en 03_asientos.sql.
    ============================================================================ */
 
 
@@ -26,8 +28,9 @@
    Descomentar solo si se necesita borrar y recrear todo el esquema.
    ============================================================================ */
 /*
-DROP TABLE IF EXISTS Ven_Pro, Venta, Contrato, Act_Dir_Pel, Pelicula_Genero,
-                     Sed_Col, Producto_Confiteria, Funcion, Staff, Sala,
+DROP TABLE IF EXISTS Venta_Asiento, Asiento, Ven_Pro, Venta, Contrato,
+                     Act_Dir_Pel, Pelicula_Genero, Sed_Col,
+                     Producto_Confiteria, Funcion, Staff, Sala,
                      Tipo_Boleta, Espectador, Colaborador, ACTOR_DIRECTOR,
                      Pelicula, Rol_Staff, Sede CASCADE;
 */
@@ -81,7 +84,7 @@ CREATE TABLE Espectador
     Documento        VARCHAR(20) NOT NULL,  -- Único por espectador (ver sección 4)
     Fecha_Nacimiento DATE,                  -- Usada para validar la clasificación por edad
     Telefono         VARCHAR(20),
-    Correo           VARCHAR(100) NOT NULL  
+    Correo           VARCHAR(100) NOT NULL
 );
 
 -- Colaborador: marcas aliadas que venden productos de confitería dentro del cine.
@@ -95,7 +98,8 @@ CREATE TABLE Colaborador
     Estado         VARCHAR(20) NOT NULL     -- Activo / Inactivo (colaboración por temporadas)
 );
 
--- Tipo_Boleta: solo existen dos tipos (general y de evento).
+-- Tipo_Boleta: catálogo de tipos de boleta con su precio vigente
+-- (General, Niño, Estudiante, Adulto mayor, Día del cine).
 CREATE TABLE Tipo_Boleta
 (
     Id_Tipo_Boleta INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -108,7 +112,7 @@ CREATE TABLE Tipo_Boleta
 CREATE TABLE Rol_Staff
 (
     Id_Rol_Staff INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
-    Nombre  VARCHAR(50) NOT NULL,      
+    Nombre  VARCHAR(50) NOT NULL,
     Salario NUMERIC(10,2) NOT NULL
 );
 
@@ -135,6 +139,16 @@ CREATE TABLE Staff
     Nombre           VARCHAR(100) NOT NULL,
     Id_Rol_Staff     INTEGER NOT NULL,
     Sede_Id_Sede     INTEGER NOT NULL
+);
+
+-- Asiento: silla física de una sala. Sala general: 8 filas x 10 sillas = 80;
+-- sala de eventos: 5 filas x 9 sillas = 45 (se cargan en 03_asientos.sql).
+CREATE TABLE Asiento
+(
+    Id_Asiento   INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
+    Fila         VARCHAR(2) NOT NULL,       -- A, B, C...
+    Numero       INTEGER NOT NULL,          -- Número de silla dentro de la fila
+    Sala_Id_Sala INTEGER NOT NULL
 );
 
 -- Funcion: proyección de una película en una sala a una hora determinada.
@@ -221,6 +235,16 @@ CREATE TABLE Ven_Pro
     Precio_unitario   NUMERIC(10,2) NOT NULL    -- Precio congelado al momento de la venta
 );
 
+-- Venta_Asiento (Ocupar): silla(s) asignada(s) a una venta. Una fila por silla
+-- vendida. Funcion_Id_Funcion se repite aquí para poder garantizar con un
+-- UNIQUE que una silla no se vende dos veces en la misma función.
+CREATE TABLE Venta_Asiento
+(
+    Venta_Id_Venta     INTEGER NOT NULL,
+    Asiento_Id_Asiento INTEGER NOT NULL,
+    Funcion_Id_Funcion INTEGER NOT NULL     -- Debe coincidir con la función de la venta
+);
+
 
 /* ============================================================================
    2. LLAVES PRIMARIAS
@@ -235,6 +259,7 @@ ALTER TABLE Tipo_Boleta         ADD CONSTRAINT Tipo_Boleta_PK         PRIMARY KE
 ALTER TABLE Rol_Staff           ADD CONSTRAINT Rol_Staff_PK           PRIMARY KEY ( Id_Rol_Staff );
 ALTER TABLE Sala                ADD CONSTRAINT Sala_PK                PRIMARY KEY ( Id_Sala );
 ALTER TABLE Staff               ADD CONSTRAINT Staff_PK               PRIMARY KEY ( Id_Staff );
+ALTER TABLE Asiento             ADD CONSTRAINT Asiento_PK             PRIMARY KEY ( Id_Asiento );
 ALTER TABLE Funcion             ADD CONSTRAINT Funcion_PK             PRIMARY KEY ( Id_Funcion );
 ALTER TABLE Producto_Confiteria ADD CONSTRAINT Producto_Confiteria_PK PRIMARY KEY ( Id_Producto );
 ALTER TABLE Contrato            ADD CONSTRAINT Contrato_PK            PRIMARY KEY ( Id_Contrato );
@@ -245,6 +270,8 @@ ALTER TABLE Act_Dir_Pel         ADD CONSTRAINT Participar_PK          PRIMARY KE
 ALTER TABLE Pelicula_Genero     ADD CONSTRAINT Pelicula_Genero_PK     PRIMARY KEY ( Genero, Pelicula_Id_Pelicula );
 ALTER TABLE Sed_Col             ADD CONSTRAINT Relacionar_PK          PRIMARY KEY ( Sede_Id_Sede, Colaborador_Id_Colaborador );
 ALTER TABLE Ven_Pro             ADD CONSTRAINT Pertenecer_PK          PRIMARY KEY ( Venta_Id_Venta, Prod_Conf_Id_Prod );
+ALTER TABLE Venta_Asiento       ADD CONSTRAINT Ocupar_PK              PRIMARY KEY ( Venta_Id_Venta, Asiento_Id_Asiento );
+ALTER TABLE Venta               ADD CONSTRAINT Venta_Id_Funcion_UQ    UNIQUE (Id_Venta, Funcion_Id_Funcion);
 
 
 /* ============================================================================
@@ -264,6 +291,11 @@ ALTER TABLE Staff
 ALTER TABLE Staff
     ADD CONSTRAINT Staff_Sede_FK FOREIGN KEY ( Sede_Id_Sede )
     REFERENCES Sede ( Id_Sede );
+
+-- Asiento -> Sala
+ALTER TABLE Asiento
+    ADD CONSTRAINT Asiento_Sala_FK FOREIGN KEY ( Sala_Id_Sala )
+    REFERENCES Sala ( Id_Sala );
 
 -- Funcion -> Pelicula, Sala
 ALTER TABLE Funcion
@@ -337,6 +369,16 @@ ALTER TABLE Ven_Pro
     ADD CONSTRAINT Pertenecer_Prod_Conf_FK FOREIGN KEY ( Prod_Conf_Id_Prod )
     REFERENCES Producto_Confiteria ( Id_Producto );
 
+-- Venta_Asiento -> Venta (llave compuesta: la función debe ser la de la venta;
+-- requiere Venta_Id_Funcion_UQ de la sección 4), Asiento
+ALTER TABLE Venta_Asiento
+    ADD CONSTRAINT Ocupar_Venta_FK FOREIGN KEY ( Venta_Id_Venta, Funcion_Id_Funcion )
+    REFERENCES Venta ( Id_Venta, Funcion_Id_Funcion );
+
+ALTER TABLE Venta_Asiento
+    ADD CONSTRAINT Ocupar_Asiento_FK FOREIGN KEY ( Asiento_Id_Asiento )
+    REFERENCES Asiento ( Id_Asiento );
+
 
 /* ============================================================================
    4. RESTRICCIONES DE UNICIDAD (UNIQUE)
@@ -359,8 +401,15 @@ ALTER TABLE Tipo_Boleta ADD CONSTRAINT Tipo_Boleta_Nombre_UQ  UNIQUE ( Nombre );
 -- Dentro de una sede no se repite el número de sala
 ALTER TABLE Sala        ADD CONSTRAINT Sala_Sede_Numero_UQ    UNIQUE ( Sede_Id_Sede, Numero );
 
+-- Dentro de una sala no se repite fila + número de silla
+ALTER TABLE Asiento     ADD CONSTRAINT Asiento_Sala_Fila_Num_UQ UNIQUE ( Sala_Id_Sala, Fila, Numero );
+
 -- Una sala no puede tener dos funciones que inicien a la misma hora
 ALTER TABLE Funcion     ADD CONSTRAINT Funcion_Sala_Inicio_UQ UNIQUE ( Sala_Id_Sala, Fecha_Hora_Inicio );
+
+-- REGLA CLAVE: una silla no se vende dos veces en la misma función
+ALTER TABLE Venta_Asiento
+    ADD CONSTRAINT Ocupar_Funcion_Asiento_UQ UNIQUE ( Funcion_Id_Funcion, Asiento_Id_Asiento );
 
 
 /* ============================================================================
@@ -384,6 +433,10 @@ ALTER TABLE Sala
     ADD CONSTRAINT Sala_Numero_CK    CHECK ( Numero > 0 );
 ALTER TABLE Sala
     ADD CONSTRAINT Sala_Tipo_CK      CHECK ( Tipo_Sala IN ('General', 'Eventos') );
+
+-- Asiento
+ALTER TABLE Asiento
+    ADD CONSTRAINT Asiento_Numero_CK CHECK ( Numero > 0 );
 
 -- Tipo_Boleta
 ALTER TABLE Tipo_Boleta
@@ -430,8 +483,9 @@ ALTER TABLE Ven_Pro
    columnas de FK. Se crean sobre las FK usadas en JOIN y filtros frecuentes.
    (Las FK que ya quedan cubiertas por una PK o UNIQUE compuesta cuya primera
    columna es esa FK no necesitan índice adicional: Sala.Sede (Sala_Sede_Numero_UQ),
-   Funcion.Sala (Funcion_Sala_Inicio_UQ), Act_Dir_Pel.Actor, Sed_Col.Sede y
-   Ven_Pro.Venta. Por eso solo se indexa el otro lado de las tablas intermedias.)
+   Asiento.Sala (Asiento_Sala_Fila_Num_UQ), Funcion.Sala (Funcion_Sala_Inicio_UQ),
+   Act_Dir_Pel.Actor, Sed_Col.Sede, Ven_Pro.Venta y Venta_Asiento.Venta.
+   Por eso solo se indexa el otro lado de las tablas intermedias.)
    ============================================================================ */
 
 -- Venta: tabla con más consultas y joins
@@ -461,5 +515,6 @@ CREATE INDEX Idx_Act_Dir_Pel_Peli   ON Act_Dir_Pel ( Pelicula_Id_Pelicula );
 CREATE INDEX Idx_Pel_Genero_Peli    ON Pelicula_Genero ( Pelicula_Id_Pelicula );
 CREATE INDEX Idx_Sed_Col_Colab      ON Sed_Col ( Colaborador_Id_Colaborador );
 CREATE INDEX Idx_Ven_Pro_Prod       ON Ven_Pro ( Prod_Conf_Id_Prod );
+CREATE INDEX Idx_Venta_Asiento_Asi  ON Venta_Asiento ( Asiento_Id_Asiento );
 
 -- FIN DEL SCRIPT
