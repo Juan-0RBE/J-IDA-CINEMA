@@ -73,31 +73,33 @@ ROLLBACK;
 -- =====================================================================
 
 -- Trigger #2: Control de aforo total en salas
--- Tabla: Venta 
--- Se hace uso de: BEFORE INSERT
+-- Tabla: Venta
+-- Se hace uso de: BEFORE INSERT OR UPDATE OF Cantidad, Funcion_Id_Funcion
+-- Bloquea la fila de la función (FOR UPDATE) antes de sumar las boletas vendidas:
+-- las ventas de una misma función se serializan y no pueden pasar el mismo conteo.
+
 CREATE OR REPLACE FUNCTION validar_boletas_disponibles_fn()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_capacidad_sala INT;
+    v_capacidad_sala   INT;
     v_boletas_vendidas INT;
 BEGIN
-    -- Se obtiene la capacidad máxima de la sala de acuerdo a la función
-    SELECT s.Capacidad INTO v_capacidad_sala FROM Funcion f JOIN Sala s ON f.Sala_Id_Sala = s.Id_Sala
-    WHERE f.Id_Funcion = NEW.Funcion_Id_Funcion;
+    -- Se obtiene la capacidad de la sala de la función y se bloquea la función
+    SELECT s.Capacidad INTO v_capacidad_sala
+      FROM Funcion f JOIN Sala s ON f.Sala_Id_Sala = s.Id_Sala
+     WHERE f.Id_Funcion = NEW.Funcion_Id_Funcion
+       FOR UPDATE OF f;
 
     -- Se valida que la función exista en la base de datos
-    IF v_capacidad_sala IS NULL THEN 
+    IF v_capacidad_sala IS NULL THEN
         RAISE EXCEPTION 'La función % no existe.', NEW.Funcion_Id_Funcion;
     END IF;
 
-    -- Se suman las boletas previamente vendidas para esa función
-    SELECT SUM(Cantidad) INTO v_boletas_vendidas  FROM Venta
-    WHERE Funcion_Id_Funcion = NEW.Funcion_Id_Funcion;
-
-    -- Si no hay ventas registradas aún, el acumulado es 0
-    IF v_boletas_vendidas IS NULL THEN  
-  v_boletas_vendidas := 0;
-    END IF;
+    -- Boletas ya vendidas para esa función (sin contar esta misma venta en un UPDATE)
+    SELECT COALESCE(SUM(Cantidad), 0) INTO v_boletas_vendidas
+      FROM Venta
+     WHERE Funcion_Id_Funcion = NEW.Funcion_Id_Funcion
+       AND Id_Venta <> NEW.Id_Venta;
 
     -- Se valida si la nueva venta sobrepasa la capacidad total de la sala
     IF (v_boletas_vendidas + NEW.Cantidad) > v_capacidad_sala THEN
@@ -110,17 +112,34 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_validar_boletas_disponibles
-BEFORE INSERT ON Venta
+BEFORE INSERT OR UPDATE OF Cantidad, Funcion_Id_Funcion ON Venta
 FOR EACH ROW
 EXECUTE FUNCTION validar_boletas_disponibles_fn();
 
--- Caso de fallo
+-- Pruebas (la función 25 tiene 78 de 80 boletas vendidas)
+-- Caso fallido: 3 boletas, solo quedan 2
+BEGIN;
 INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
 VALUES ('2026-10-08', 18000.00, 'Efectivo', 3, 1, 1, 1, 25);
+ROLLBACK;
 
--- Caso exitoso
+-- Caso exitoso: 2 boletas, justo las que quedan
+BEGIN;
 INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
 VALUES ('2026-10-08', 18000.00, 'Tarjeta', 2, 1, 2, 1, 25);
+ROLLBACK;
+
+-- Caso fallido: subir la cantidad de una venta existente por encima del aforo
+-- (venta 40 = 40 boletas; las otras 38 + 43 = 81 > 80)
+BEGIN;
+UPDATE Venta SET Cantidad = 43 WHERE Id_Venta = 40;
+ROLLBACK;
+
+-- Caso fallido: la función no existe
+BEGIN;
+INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
+VALUES ('2026-10-08', 18000.00, 'Efectivo', 1, 1, 1, 1, 999);
+ROLLBACK;
 
 
 -- =====================================================================
@@ -163,12 +182,22 @@ FOR EACH ROW
 EXECUTE FUNCTION venta_taquillero_fn();
 
 -- Caso exitoso: el staff que realiza la venta es 'Taquillero'
-INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion) 
-VALUES('2026-10-12', 18000, 'Tarjeta', 2, 1, 1, 1, 1);
+BEGIN;
+INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
+VALUES ('2026-10-08', 18000, 'Tarjeta', 2, 1, 1, 1, 1);
+ROLLBACK;
 
--- Caso fallido: el staff que realiza la venta no es 'Taquillero'
-INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad,Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion) 
-VALUES('2026-10-12', 18000, 'Tarjeta', 2, 10, 1, 1, 1);
+-- Caso fallido: el staff que realiza la venta no es 'Taquillero' (el staff 10 es Coordinador de eventos)
+BEGIN;
+INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
+VALUES ('2026-10-08', 18000, 'Tarjeta', 2, 10, 1, 1, 1);
+ROLLBACK;
+
+-- Caso fallido: el empleado no existe
+BEGIN;
+INSERT INTO Venta (Fecha, Precio_Unitario, Metodo_pago, Cantidad, Staff_Id_Staff, Espectador_Id_Espectador, Tipo_Boleta_Id_Tipo_Boleta, Funcion_Id_Funcion)
+VALUES ('2026-10-08', 18000, 'Tarjeta', 2, 999, 1, 1, 1);
+ROLLBACK;
 
 /*
 Trigger #4: el stock del producto de confiteria se actualiza luego de realizar una venta
@@ -202,17 +231,26 @@ AFTER INSERT ON Ven_Pro
 FOR EACH ROW
 EXECUTE FUNCTION descontar_stock_fn();
 
--- Caso exitoso: se solicita una cantidad de 3 unidades del producto con id 1
+-- Pruebas (cada caso va en su propia transacción y se deshace)
+-- Caso exitoso: 3 unidades del producto 1 (stock 60) en la venta 2
+BEGIN;
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
 VALUES (2, 1, 3, 16500.00);
+SELECT Stock AS stock_despues_de_vender_3 FROM Producto_Confiteria WHERE Id_Producto = 1;   -- 57
+ROLLBACK;
 
--- Caso fallido: se solicita una cantidad de 60 unidades del producto con id 1, lo cual excede la cantidad disponible
+-- Caso fallido: 61 unidades del producto 1, lo cual excede el stock disponible (60)
+BEGIN;
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
 VALUES (2, 1, 61, 16500.00);
+ROLLBACK;
 
--- Caso fallido: se solicita una cantidad de 2 unidades del producto con id 13 (un producto no existente)
+-- Caso fallido: producto inexistente (id 13). Lo rechaza primero la llave foránea
+-- Pertenecer_Prod_Conf_FK; el trigger solo se ejecuta cuando el producto existe.
+BEGIN;
 INSERT INTO Ven_Pro (Venta_Id_Venta, Prod_Conf_Id_Prod, Cantidad, Precio_unitario)
 VALUES (2, 13, 1, 16500.00);
+ROLLBACK;
 
 -- =====================================================================
 -- Triggers Javier
@@ -389,13 +427,29 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_validar_contrato();
 
 -- Caso Exitoso: El contrato es creado sin inconvenientes
+BEGIN;
 INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion)
   VALUES ('Vigente', CURRENT_DATE, CURRENT_DATE + 30, 11, 1);
+ROLLBACK;
 
 -- Caso Fallido: El actor/director reconocido con el id 18 no tiene participación
--- en la función 1.
+-- en la película de la función 1.
+BEGIN;
 INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion)
   VALUES ('Vigente', CURRENT_DATE, CURRENT_DATE + 30, 18, 1);
+ROLLBACK;
+
+-- Caso Fallido: La fecha de fin es anterior a la de inicio.
+BEGIN;
+INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion)
+  VALUES ('Vigente', CURRENT_DATE + 30, CURRENT_DATE, 11, 1);
+ROLLBACK;
+
+-- Caso Fallido: La función no existe.
+BEGIN;
+INSERT INTO contrato (estado, fecha_inicio, fecha_fin, act_dir_id_actor_dir, funcion_id_funcion)
+  VALUES ('Vigente', CURRENT_DATE, CURRENT_DATE + 30, 11, 999);
+ROLLBACK;
 
 /*
 TRIGGER #8: Validar sede de la venta
@@ -446,17 +500,21 @@ EXECUTE FUNCTION fn_validar_sede_venta();
 
 -- Caso Exitoso: Staff 1 = taquillero de Bogotá (sede 1). Función 19 = sala 1, sede 1 (Bogotá).
 -- Ambos son de la misma sede, así que la venta se registra.
+BEGIN;
 INSERT INTO venta (fecha, precio_unitario, metodo_pago, cantidad,
                      staff_id_staff, espectador_id_espectador,
                      tipo_boleta_id_tipo_boleta, funcion_id_funcion)
-  VALUES (CURRENT_DATE, 18000, 'Efectivo', 1, 1, 1, 1, 19);
+  VALUES ('2026-10-08', 18000, 'Efectivo', 1, 1, 1, 1, 19);
+ROLLBACK;
 
 -- Caso Fallido: Staff 3 = taquillero de Sibaté (sede 2) intentando vender la función 19
 -- (Bogotá). El trigger rechaza la venta por ser sedes distintas.
+BEGIN;
 INSERT INTO venta (fecha, precio_unitario, metodo_pago, cantidad,
                      staff_id_staff, espectador_id_espectador,
                      tipo_boleta_id_tipo_boleta, funcion_id_funcion)
-  VALUES (CURRENT_DATE, 18000, 'Efectivo', 1, 3, 1, 1, 19);
+  VALUES ('2026-10-08', 18000, 'Efectivo', 1, 3, 1, 1, 19);
+ROLLBACK;
 
 -- =====================================================================
 -- Triggers Corrección 
@@ -470,6 +528,7 @@ CREATE OR REPLACE FUNCTION fn_validar_capacidad_sala()
 RETURNS trigger AS $$
 DECLARE
     v_max_vendidas INT;
+    v_sillas       INT;
 BEGIN
     -- Mayor número de boletas vendidas en una sola función de esta sala
     SELECT MAX(t.total) INTO v_max_vendidas
@@ -478,12 +537,19 @@ BEGIN
               JOIN Funcion f ON f.Id_Funcion = v.Funcion_Id_Funcion
              WHERE f.Sala_Id_Sala = NEW.Id_Sala
              GROUP BY v.Funcion_Id_Funcion) t;
- 
+
     IF v_max_vendidas IS NOT NULL AND NEW.Capacidad < v_max_vendidas THEN
         RAISE EXCEPTION 'No se puede reducir la capacidad de la sala % a %: ya hay una función con % boletas vendidas.',
                         NEW.Id_Sala, NEW.Capacidad, v_max_vendidas;
     END IF;
- 
+
+    -- Con sillas registradas, la capacidad debe coincidir con ellas
+    SELECT COUNT(*) INTO v_sillas FROM Asiento WHERE Sala_Id_Sala = NEW.Id_Sala;
+    IF v_sillas > 0 AND NEW.Capacidad <> v_sillas THEN
+        RAISE EXCEPTION 'La capacidad de la sala % (%) debe coincidir con sus sillas registradas (%).',
+                        NEW.Id_Sala, NEW.Capacidad, v_sillas;
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -497,8 +563,13 @@ EXECUTE FUNCTION fn_validar_capacidad_sala();
 BEGIN;
 UPDATE Sala SET Capacidad = 70 WHERE Id_Sala = 1;
 ROLLBACK;
+
+-- Caso fallido: capacidad (79) distinta a las 80 sillas de la sala 1
+BEGIN;
+UPDATE Sala SET Capacidad = 79 WHERE Id_Sala = 1;
+ROLLBACK;
  
--- Caso exitoso: 80 >= 78
+-- Caso exitoso: 80 = 80 sillas y 80 >= 78 boletas
 BEGIN;
 UPDATE Sala SET Capacidad = 80 WHERE Id_Sala = 1;
 ROLLBACK;
@@ -568,3 +639,4 @@ BEGIN;
 UPDATE Tipo_Boleta SET Precio = 180000 WHERE Id_Tipo_Boleta = 1;
 ROLLBACK;
 
+-- FIN DEL SCRIPT
