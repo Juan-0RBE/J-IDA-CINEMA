@@ -160,6 +160,10 @@ db.createCollection("requisitos_proyeccion", {
             }
           }
         },
+        observaciones: {
+          bsonType: "string", minLength: 1,
+          description: "Nota libre del equipo sobre la función (opcional)"
+        },
         reserva: {
           bsonType: "object",
           description: "Solo para formato Evento: reserva de la sala de eventos",
@@ -171,9 +175,7 @@ db.createCollection("requisitos_proyeccion", {
             anticipacion_dias: {
               bsonType: "number", minimum: 7, multipleOf: 1,
               description: "Regla del negocio: reserva con mínimo 7 días de anticipación"
-            },
-             observaciones: { bsonType: "string", minLength: 1,
-                 description: "Nota libre del equipo sobre la función (opcional)" }
+            }
           }
         }
       },
