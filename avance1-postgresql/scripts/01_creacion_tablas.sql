@@ -18,8 +18,6 @@
        guardan el valor vigente al momento de la venta; no cambian después.
      - Los valores permitidos en los CHECK de dominio (sección 5) deben
        coincidir con los usados en 02_datos_prueba.sql.
-     - Asignación de asientos: las tablas Asiento y Venta_Asiento se crean
-       aquí; sus datos y triggers se cargan en 03_asientos.sql.
    ============================================================================ */
 
 

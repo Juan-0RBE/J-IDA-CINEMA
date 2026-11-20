@@ -538,10 +538,10 @@ END;
 $$;
  
 -- Caso exitoso
-CALL sp_reporte_ingresos_sede('2026-01-01', '2026-12-31');
+CALL realizar_reporte_ingresos_sede('2026-01-01', '2026-12-31');
  
 -- Caso fallido: fechas nulas
-CALL sp_reporte_ingresos_sede(NULL, '2026-12-31');
+CALL realizar_reporte_ingresos_sede(NULL, '2026-12-31');
  
 -- Caso fallido: rango invertido
-CALL sp_reporte_ingresos_sede('2026-12-31', '2026-01-01');
+CALL realizar_reporte_ingresos_sede('2026-12-31', '2026-01-01');
