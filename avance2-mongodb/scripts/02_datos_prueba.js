@@ -5,8 +5,7 @@
    EJECUCIÓN (mongosh), DESPUÉS de 01_creacion_colecciones.js:
 
 
-   COHERENCIA CON POSTGRESQL (01_creacion_tablas.sql, 02_datos_prueba.sql y
-   03_datos_adicionales_avance2.sql ya ejecutados)
+   COHERENCIA CON POSTGRESQL (01_creacion_tablas.sql, 02_datos_prueba.sql y ya ejecutados)
      fichas_tecnicas_peliculas  30 documentos  -> id_pelicula 1 a 30 (una ficha por película)
      requisitos_proyeccion      35 documentos  -> id_funcion de funciones con formato especial
                                                    (sala 4 es general y no tiene requisitos)
@@ -2677,7 +2676,7 @@ db.reportes_incidentes.insertMany([
       }
     ]
   },
- {
+  {
     tipo: "queja_servicio",
     fecha_hora: ISODate("2026-10-07T19:50:00Z"),
     id_sede: 1,
