@@ -51,7 +51,7 @@ WITH ingresos_colaborador AS (
     SUM(vp.Cantidad * vp.Precio_unitario) AS ingresos FROM Ven_Pro vp JOIN Producto_Confiteria pc ON pc.Id_Producto = vp.Prod_Conf_Id_Prod JOIN Colaborador c
   ON c.Id_Colaborador = pc.Colaborador_Id_Colaborador GROUP BY c.Id_Colaborador, c.Nombre_negocio, c.Estado
   )
-  --Se establece un ranking entre los colaboradores con respecto a las unidades de sus productos vendidas
+  --Se establece un ranking entre los colaboradores con respecto a sus ingresos
 SELECT colaborador,estado, unidades_vendidas, ingresos, RANK() OVER (ORDER BY ingresos DESC) AS posicion,
   ROUND(ingresos * 100.0 / SUM(ingresos) OVER (), 2) AS porcentaje_total FROM ingresos_colaborador ORDER BY posicion, colaborador;
 
