@@ -1,0 +1,193 @@
+.venta {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 3rem;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+// --------------------------- Mapa -----------------------------------------
+
+.sala {
+  margin-top: 1.2rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+// Pantalla curva con un leve resplandor
+.pantalla {
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  color: var(--texto-suave);
+  border-top: 3px solid var(--texto);
+  border-radius: 50% 50% 0 0 / 14px 14px 0 0;
+  box-shadow: 0 -8px 18px -10px rgba(236, 228, 214, 0.5);
+  padding-top: 0.4rem;
+  margin: 0 2rem 1.6rem;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.fila__letra {
+  width: 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.silla {
+  width: 1.9rem;
+  height: 1.7rem;
+  padding: 0;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--texto);
+  background: var(--superficie-2);
+  border: 1px solid var(--linea);
+  border-radius: 6px 6px 2px 2px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--dorado);
+    color: var(--dorado);
+  }
+
+  &.elegida {
+    background: var(--rojo);
+    border-color: var(--rojo);
+    color: #fff;
+  }
+
+  &.ocupada {
+    background: transparent;
+    border-color: var(--linea);
+    color: transparent;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &--muestra {
+    display: inline-block;
+    width: 0.9rem;
+    height: 0.8rem;
+    vertical-align: -1px;
+    cursor: default;
+  }
+}
+
+.leyenda {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.2rem;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+// --------------------------- Formulario -----------------------------------
+
+.rejilla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+
+  .campo {
+    min-width: 0;
+  }
+}
+
+.campo__etq {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.sillas-elegidas,
+.confiteria {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--linea);
+
+  p {
+    margin-top: 0.3rem;
+  }
+}
+
+.confiteria {
+  margin-bottom: 1.5rem;
+}
+
+.confiteria__cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.confiteria__fila {
+  display: grid;
+  grid-template-columns: 1fr 4.5rem auto;
+  gap: 1rem;
+  align-items: end;
+  margin-top: 0.6rem;
+}
+
+// --------------------------- Comprobante ----------------------------------
+// Se ve como una boleta impresa: papel claro sobre la sala oscura.
+
+.comprobante {
+  --texto: #1d1a17;
+  --texto-suave: #6d655b;
+  --linea: #d8cfbf;
+
+  max-width: 26rem;
+  margin: 2rem auto 0;
+  background: #f1eadc;
+  color: var(--texto);
+  padding: 1.5rem;
+  border-left: 6px dotted var(--fondo);
+  border-right: 6px dotted var(--fondo);
+}
+
+.comprobante__cab {
+  text-align: center;
+  border-bottom: 1px dashed var(--texto-suave);
+  padding-bottom: 0.8rem;
+  margin-bottom: 1rem;
+
+  p {
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+  }
+}
+
+.comprobante__marca {
+  font-family: var(--serif);
+  font-size: 1.5rem !important;
+  color: var(--rojo) !important;
+}
+
+.comprobante__tabla {
+  margin-top: 1rem;
+
+  .total td {
+    border-top: 1px solid var(--texto);
+    border-bottom: 0;
+    font-weight: 600;
+  }
+}
+
+.comprobante__emision {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}

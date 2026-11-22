@@ -1,0 +1,291 @@
+// ---------------------------------------------------------------------------
+// Estilos globales. Sala oscura, rojo terciopelo y dorado de marquesina.
+// ---------------------------------------------------------------------------
+
+:root {
+  --fondo: #141113;
+  --superficie: #1d191b;
+  --superficie-2: #262023;
+  --texto: #ece4d6;
+  --texto-suave: #9a8f84;
+  --linea: #3a3235;
+  --rojo: #6e171b;
+  --rojo-hover: #8a1d23;
+  --dorado: #d4a94e;
+
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color-scheme: dark;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+// --------------------------- Secciones ------------------------------------
+
+.seccion__cabecera {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--linea);
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 2.1rem;
+    line-height: 1.1;
+  }
+}
+
+.seccion__desc {
+  margin-top: 0.5rem;
+  max-width: 62ch;
+  color: var(--texto-suave);
+}
+
+// --------------------------- Bloques --------------------------------------
+
+.bloque {
+  border-top: 1px solid var(--linea);
+  padding-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.bloque__titulo {
+  margin-bottom: 1rem;
+
+  h3 {
+    font-size: 1.3rem;
+  }
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 3rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+// --------------------------- Datos ----------------------------------------
+
+.datos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1.5rem;
+  margin: 0;
+
+  dt {
+    color: var(--texto-suave);
+  }
+  dd {
+    margin: 0;
+  }
+}
+
+.cifra {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th {
+    text-align: left;
+    font-weight: 400;
+    color: var(--texto-suave);
+    border-bottom: 1px solid var(--texto-suave);
+    padding: 0.4rem 0.6rem 0.4rem 0;
+  }
+  td {
+    border-bottom: 1px solid var(--linea);
+    padding: 0.55rem 0.6rem 0.55rem 0;
+    vertical-align: top;
+  }
+  .num {
+    text-align: right;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.vacio {
+  color: var(--texto-suave);
+  font-style: italic;
+}
+
+.nota {
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+
+// --------------------------- Avisos ---------------------------------------
+
+.aviso {
+  border-left: 3px solid var(--rojo);
+  background: var(--superficie);
+  padding: 0.7rem 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+
+  &--suave {
+    border-left-color: var(--dorado);
+  }
+}
+
+// --------------------------- Formularios ----------------------------------
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 12rem;
+
+  > span {
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+  }
+
+  &--corto {
+    min-width: 6rem;
+    width: 7rem;
+  }
+
+  &--ancho {
+    min-width: 20rem;
+  }
+
+  &--check {
+    flex-direction: row;
+    align-items: center;
+    min-width: auto;
+    gap: 0.5rem;
+    padding-bottom: 0.55rem;
+  }
+}
+
+input,
+select {
+  font: inherit;
+  color: var(--texto);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--texto-suave);
+  border-radius: 0;
+  padding: 0.4rem 0.1rem;
+  outline: none;
+
+  &:focus {
+    border-bottom-color: var(--dorado);
+    box-shadow: 0 1px 0 0 var(--dorado);
+  }
+}
+
+select option {
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--rojo);
+  width: 1rem;
+  height: 1rem;
+}
+
+.boton {
+  font: inherit;
+  font-size: 0.95rem;
+  background: var(--rojo);
+  color: #fff;
+  border: 1px solid var(--rojo);
+  border-radius: 2px;
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--rojo-hover);
+    border-color: var(--rojo-hover);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &--linea {
+    background: transparent;
+    color: var(--texto);
+    border-color: var(--texto-suave);
+
+    &:hover:not(:disabled) {
+      background: transparent;
+      border-color: var(--dorado);
+      color: var(--dorado);
+    }
+  }
+}
+
+.enlace {
+  font: inherit;
+  font-size: 0.88rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--dorado);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+// Barra horizontal simple para proporciones
+.barra {
+  height: 6px;
+  background: var(--superficie-2);
+
+  > div {
+    height: 100%;
+    background: var(--dorado);
+  }
+
+  &--rojo > div {
+    background: var(--rojo);
+  }
+}

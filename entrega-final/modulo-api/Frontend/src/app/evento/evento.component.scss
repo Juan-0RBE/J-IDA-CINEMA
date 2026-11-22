@@ -1,0 +1,36 @@
+.evento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 3rem;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+fieldset {
+  border: 0;
+  border-top: 1px solid var(--linea);
+  margin: 0 0 2rem;
+  padding: 1rem 0 0;
+  min-width: 0;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+
+  .campo {
+    min-width: 0;
+  }
+}
+
+.campo--doble {
+  grid-column: span 2;
+}
+
+.anticipacion {
+  margin-top: 1.3rem;
+}

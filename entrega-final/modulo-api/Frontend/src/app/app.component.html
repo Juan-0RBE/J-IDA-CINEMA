@@ -1,0 +1,68 @@
+<header class="cabecera">
+  <div>
+    <h1>J'IDA Cinema</h1>
+  </div>
+
+  <div class="estado">
+    <div class="estado__motor">
+      <span class="estado__punto" [class.on]="conexiones()?.postgres?.ok" [class.off]="conexiones() && !conexiones()?.postgres?.ok"></span>
+      <div>
+        <p>PostgreSQL</p>
+        @if (conexiones()?.postgres; as pg) {
+          @if (pg.ok) {
+            <p class="estado__detalle">{{ pg.peliculas }} películas, {{ pg.funciones }} funciones, {{ pg.ventas }} ventas</p>
+          } @else {
+            <p class="estado__detalle" [title]="pg.error ?? ''">Sin conexión</p>
+          }
+        } @else {
+          <p class="estado__detalle">{{ verificando() ? 'Verificando...' : 'Sin datos' }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="estado__motor">
+      <span class="estado__punto" [class.on]="conexiones()?.mongo?.ok" [class.off]="conexiones() && !conexiones()?.mongo?.ok"></span>
+      <div>
+        <p>MongoDB</p>
+        @if (conexiones()?.mongo; as mg) {
+          @if (mg.ok) {
+            <p class="estado__detalle">{{ mg.fichas }} fichas, {{ mg.resenas }} reseñas, {{ mg.incidentes }} incidentes</p>
+          } @else {
+            <p class="estado__detalle" [title]="mg.error ?? ''">Sin conexión</p>
+          }
+        } @else {
+          <p class="estado__detalle">{{ verificando() ? 'Verificando...' : 'Sin datos' }}</p>
+        }
+      </div>
+    </div>
+
+    <button class="enlace" type="button" (click)="recargar()">Actualizar</button>
+  </div>
+</header>
+
+<nav class="indice">
+  @for (s of secciones; track s.id) {
+    <button type="button" class="indice__item" [class.activo]="vista() === s.id" (click)="vista.set(s.id)">
+      <span class="indice__num">{{ s.num }}</span>
+      <span class="indice__titulo">{{ s.titulo }}</span>
+    </button>
+  }
+</nav>
+
+<main class="contenido">
+  @if (errorApi()) {
+    <p class="aviso">{{ errorApi() }}</p>
+  }
+
+  @switch (vista()) {
+    @case ('caso1') { <app-caso1 [catalogo]="catalogo()" /> }
+    @case ('caso2') { <app-caso2 [catalogo]="catalogo()" /> }
+    @case ('caso3') { <app-caso3 /> }
+    @case ('venta') { <app-venta [catalogo]="catalogo()" (cambio)="recargar()" /> }
+    @case ('evento') { <app-evento [catalogo]="catalogo()" (cambio)="recargar()" /> }
+  }
+</main>
+
+<footer class="pie">
+  <p>J'IDA Cinema</p>
+</footer>

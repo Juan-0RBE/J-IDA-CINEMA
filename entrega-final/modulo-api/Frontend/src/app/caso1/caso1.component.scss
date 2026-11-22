@@ -1,0 +1,71 @@
+.ocupacion {
+  margin-top: 0.4rem;
+  max-width: 14rem;
+}
+
+.promedio {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.promedio__valor {
+  font-family: var(--serif);
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--dorado);
+}
+
+.promedio__base {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.distribucion {
+  display: grid;
+  grid-template-columns: 1.2rem 1fr 2rem;
+  align-items: center;
+  gap: 0.35rem 0.7rem;
+  max-width: 22rem;
+  font-size: 0.82rem;
+}
+
+.distribucion__cant {
+  text-align: right;
+  color: var(--texto-suave);
+}
+
+.resena {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--linea);
+
+  &:first-of-type {
+    padding-top: 0;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+}
+
+.resena__nombre {
+  font-weight: 600;
+}
+
+.resena__nota {
+  color: var(--dorado);
+}
+
+.resena__texto {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  margin: 0.3rem 0;
+}
+
+.resena__fecha {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}

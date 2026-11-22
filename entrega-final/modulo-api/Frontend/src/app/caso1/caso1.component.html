@@ -1,0 +1,108 @@
+<section>
+  <header class="seccion__cabecera">
+    <h2>Función con sus reseñas</h2>
+    <p class="seccion__desc">Datos de la función, ocupación de la sala y opiniones de los espectadores.</p>
+  </header>
+
+  <form class="filtros" (ngSubmit)="consultar()">
+    <label class="campo campo--ancho">
+      <span>Función</span>
+      <select name="funcionSel" [(ngModel)]="idFuncion">
+        <option [ngValue]="null" disabled>Selecciona una función</option>
+        @for (f of catalogo()?.funciones ?? []; track f.id_funcion) {
+          <option [ngValue]="f.id_funcion">
+            {{ f.id_funcion }}. {{ f.pelicula }}, {{ f.fecha_hora | date: 'dd/MM/yyyy HH:mm' }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="campo campo--corto">
+      <span>ID</span>
+      <input type="number" name="funcionId" min="1" [(ngModel)]="idFuncion" />
+    </label>
+    <button class="boton" type="submit" [disabled]="!idFuncion || cargando()">
+      {{ cargando() ? 'Consultando...' : 'Consultar' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="aviso">{{ error() }}</p>
+  }
+
+  @if (datos(); as d) {
+    @for (a of d.avisos; track a) {
+      <p class="aviso aviso--suave">{{ a }}</p>
+    }
+
+    <div class="columnas">
+      <div>
+        <div class="bloque">
+          <div class="bloque__titulo">
+            <h3>{{ d.funcion.pelicula }}</h3>
+          </div>
+          <dl class="datos">
+            <dt>Función</dt>
+            <dd class="cifra">{{ d.funcion.id_funcion }}</dd>
+            <dt>Fecha</dt>
+            <dd>{{ d.funcion.fecha_hora | date: "EEEE d 'de' MMMM, HH:mm" }}</dd>
+            <dt>Sede</dt>
+            <dd>{{ d.funcion.sede }}</dd>
+            <dt>Sala</dt>
+            <dd class="cifra">{{ d.funcion.sala }}</dd>
+            <dt>Ocupación</dt>
+            <dd>
+              <span class="cifra">{{ d.funcion.boletas_vendidas }} / {{ d.funcion.capacidad }}</span>
+              <div class="barra ocupacion"><div [style.width.%]="ocupacion(d.funcion)"></div></div>
+            </dd>
+          </dl>
+        </div>
+
+        @if (d.resenas) {
+          <div class="bloque">
+            <div class="bloque__titulo">
+              <h3>Calificación</h3>
+            </div>
+            @if (d.promedio !== null) {
+              <p class="promedio">
+                <span class="promedio__valor">{{ d.promedio | number: '1.1-1' }}</span>
+                <span class="promedio__base">de 5, con {{ d.resenas.length }} reseñas</span>
+              </p>
+              <div class="distribucion">
+                @for (fila of distribucion(); track fila.nota) {
+                  <span class="cifra">{{ fila.nota }}</span>
+                  <div class="barra"><div [style.width.%]="fila.porcentaje"></div></div>
+                  <span class="cifra distribucion__cant">{{ fila.cantidad }}</span>
+                }
+              </div>
+            } @else {
+              <p class="vacio">Sin calificaciones todavía.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="bloque">
+        <div class="bloque__titulo">
+          <h3>Reseñas</h3>
+        </div>
+
+        @if (d.resenas === null) {
+          <p class="vacio">No se pudieron cargar las reseñas.</p>
+        } @else {
+          @for (r of d.resenas; track $index) {
+            <article class="resena">
+              <header>
+                <span class="resena__nombre">{{ r.nombre_espectador }}</span>
+                <span class="resena__nota cifra">{{ r.calificacion }}/5</span>
+              </header>
+              <p class="resena__texto">{{ r.texto }}</p>
+              <p class="resena__fecha">{{ r.fecha | date: 'dd/MM/yyyy' }}</p>
+            </article>
+          } @empty {
+            <p class="vacio">Esta función no tiene reseñas.</p>
+          }
+        }
+      </div>
+    </div>
+  }
+</section>

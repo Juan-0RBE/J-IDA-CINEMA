@@ -1,0 +1,172 @@
+<section>
+  <header class="seccion__cabecera">
+    <h2>Venta de boletas</h2>
+    <p class="seccion__desc">Escoge la función y las sillas, agrega confitería si quieres y registra la venta.</p>
+  </header>
+
+  <form class="filtros" (ngSubmit)="cargarMapa()">
+    <label class="campo campo--ancho">
+      <span>Función</span>
+      <select name="funcionSel" [(ngModel)]="idFuncion" (ngModelChange)="cargarMapa()">
+        <option [ngValue]="null" disabled>Selecciona una función</option>
+        @for (f of catalogo()?.funciones ?? []; track f.id_funcion) {
+          <option [ngValue]="f.id_funcion">
+            {{ f.id_funcion }}. {{ f.pelicula }}, {{ f.fecha_hora | date: 'dd/MM/yyyy HH:mm' }}
+          </option>
+        }
+      </select>
+    </label>
+    <button class="boton boton--linea" type="submit" [disabled]="!idFuncion || cargandoMapa()">
+      {{ cargandoMapa() ? 'Cargando...' : 'Actualizar mapa' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="aviso">{{ error() }}</p>
+  }
+
+  @if (mapa(); as m) {
+    <div class="venta">
+      <div class="bloque">
+        <div class="bloque__titulo">
+          <h3>{{ m.funcion.sede }}, sala {{ m.funcion.sala }}</h3>
+        </div>
+        <p class="nota">
+          {{ m.funcion.pelicula }}, {{ m.funcion.fecha_hora | date: 'dd/MM/yyyy HH:mm' }}.
+          {{ libres() }} sillas libres.
+        </p>
+
+        <div class="sala">
+          <div class="pantalla">Pantalla</div>
+          @for (f of filas(); track f.fila) {
+            <div class="fila">
+              <span class="fila__letra">{{ f.fila }}</span>
+              @for (a of f.asientos; track a.id_asiento) {
+                <button
+                  type="button"
+                  class="silla"
+                  [class.ocupada]="a.ocupado"
+                  [class.elegida]="seleccion().includes(a.id_asiento)"
+                  [disabled]="a.ocupado"
+                  [title]="a.fila + a.numero"
+                  (click)="alternar(a)"
+                >{{ a.numero }}</button>
+              }
+            </div>
+          } @empty {
+            <p class="vacio">La sala no tiene sillas registradas.</p>
+          }
+        </div>
+
+        <div class="leyenda">
+          <span><i class="silla silla--muestra"></i> Libre</span>
+          <span><i class="silla silla--muestra elegida"></i> Escogida</span>
+          <span><i class="silla silla--muestra ocupada"></i> Vendida</span>
+        </div>
+      </div>
+
+      <form class="bloque" (ngSubmit)="enviar()">
+        <div class="bloque__titulo">
+          <h3>Datos de la venta</h3>
+        </div>
+
+        <div class="rejilla">
+          <label class="campo">
+            <span>ID espectador</span>
+            <input type="number" name="espectador" min="1" [(ngModel)]="idEspectador" required />
+          </label>
+          <label class="campo">
+            <span>ID taquillero</span>
+            <input type="number" name="staff" min="1" [(ngModel)]="idStaff" required />
+          </label>
+          <label class="campo">
+            <span>ID tipo de boleta</span>
+            <input type="number" name="tipo" min="1" [(ngModel)]="idTipoBoleta" required />
+          </label>
+          <label class="campo">
+            <span>Método de pago</span>
+            <input type="text" name="pago" list="metodos" [(ngModel)]="metodoPago" />
+            <datalist id="metodos">
+              <option value="Tarjeta"></option>
+              <option value="Efectivo"></option>
+            </datalist>
+          </label>
+        </div>
+
+        <div class="sillas-elegidas">
+          <span class="campo__etq">Sillas</span>
+          @if (etiquetasSeleccion().length) {
+            <p class="cifra">{{ etiquetasSeleccion().join('  ') }}</p>
+          } @else {
+            <p class="vacio">Ninguna todavía.</p>
+          }
+        </div>
+
+        <div class="confiteria">
+          <div class="confiteria__cab">
+            <span class="campo__etq">Confitería</span>
+            <button type="button" class="enlace" (click)="agregarProducto()">Agregar producto</button>
+          </div>
+          @for (p of productos; track $index; let i = $index) {
+            <div class="confiteria__fila">
+              <select [name]="'prod' + i" [(ngModel)]="p.id_producto">
+                <option [ngValue]="null" disabled>Producto</option>
+                @for (c of catalogo()?.productos ?? []; track c.id_producto) {
+                  <option [ngValue]="c.id_producto">{{ c.nombre }}</option>
+                }
+              </select>
+              <input type="number" [name]="'cant' + i" min="1" max="20" [(ngModel)]="p.cantidad" />
+              <button type="button" class="enlace" (click)="quitarProducto(i)">Quitar</button>
+            </div>
+          }
+        </div>
+
+        <button class="boton" type="submit" [disabled]="!seleccion().length || enviando()">
+          {{ enviando() ? 'Registrando...' : 'Registrar venta' }}
+        </button>
+      </form>
+    </div>
+  }
+
+  @if (resultado(); as r) {
+    <app-resultado [resultado]="r" />
+
+    @if (r.comprobante; as c) {
+      <div class="comprobante">
+        <div class="comprobante__cab">
+          <p class="comprobante__marca">J'IDA Cinema</p>
+          <p>Comprobante de venta</p>
+        </div>
+
+        <dl class="datos">
+          <dt>Código</dt><dd class="cifra">{{ c.codigo }}</dd>
+          <dt>Venta</dt><dd class="cifra">{{ c.id_venta }}</dd>
+          <dt>Película</dt><dd>{{ c.pelicula }}</dd>
+          <dt>Lugar</dt><dd>{{ c.sede }}, sala {{ c.sala }}</dd>
+          <dt>Función</dt><dd>{{ c.fecha_funcion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+          <dt>Sillas</dt><dd class="cifra">{{ c.asientos.join('  ') }}</dd>
+        </dl>
+
+        <table class="tabla comprobante__tabla">
+          <tbody>
+            <tr>
+              <td>Boletas ({{ c.asientos.length }})</td>
+              <td class="num">$ {{ c.total_boletas | number: '1.0-0' }}</td>
+            </tr>
+            @for (p of c.productos; track $index) {
+              <tr>
+                <td>{{ p.nombre }} x {{ p.cantidad }}</td>
+                <td class="num">$ {{ p.subtotal | number: '1.0-0' }}</td>
+              </tr>
+            }
+            <tr class="total">
+              <td>Total ({{ c.metodo_pago }})</td>
+              <td class="num">$ {{ c.total | number: '1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="comprobante__emision">{{ c.fecha_emision | date: 'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+    }
+  }
+</section>

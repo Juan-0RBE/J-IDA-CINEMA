@@ -1,0 +1,89 @@
+<section>
+  <header class="seccion__cabecera">
+    <h2>Ventas frente a incidentes por sala</h2>
+    <p class="seccion__desc">Boletas e ingresos de funciones ya realizadas, comparados con los incidentes reportados en cada sala.</p>
+  </header>
+
+  <div class="filtros">
+    <button class="boton boton--linea" type="button" (click)="consultar()" [disabled]="cargando()">
+      {{ cargando() ? 'Calculando...' : 'Actualizar' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="aviso">{{ error() }}</p>
+  }
+
+  @if (datos(); as d) {
+    @for (a of d.avisos; track a) {
+      <p class="aviso aviso--suave">{{ a }}</p>
+    }
+
+    <div class="resumen">
+      <div>
+        <p class="resumen__etq">Boletas vendidas</p>
+        <p class="resumen__valor">{{ totales().boletas | number: '1.0-0' }}</p>
+      </div>
+      <div>
+        <p class="resumen__etq">Ingresos</p>
+        <p class="resumen__valor">$ {{ totales().ingresos | number: '1.0-0' }}</p>
+      </div>
+      <div>
+        <p class="resumen__etq">Incidentes en salas</p>
+        <p class="resumen__valor">{{ totales().incidentes | number: '1.0-0' }}</p>
+      </div>
+      <div>
+        <p class="resumen__etq">Reportes sin sala</p>
+        <p class="resumen__valor">{{ d.incidentes_sin_sala ?? '-' }}</p>
+      </div>
+    </div>
+
+    <div class="bloque">
+      <div class="bloque__titulo">
+        <h3>Detalle por sala</h3>
+      </div>
+
+      <div class="tabla-scroll">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Sede</th>
+              <th class="num">Sala</th>
+              <th class="num">Boletas</th>
+              <th class="num">Ingresos</th>
+              <th class="num">Incidentes</th>
+              <th class="num">Fallas</th>
+              <th class="num">Quejas</th>
+              <th class="num">Seguridad</th>
+              <th class="tasa">Incidentes por 1000 boletas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of d.salas; track s.id_sala; let i = $index) {
+              <tr [class.destacada]="i === 0 && s.tasa_x1000">
+                <td>{{ s.sede }}</td>
+                <td class="num">{{ s.sala }}</td>
+                <td class="num">{{ s.boletas | number: '1.0-0' }}</td>
+                <td class="num">{{ s.ingresos | number: '1.0-0' }}</td>
+                <td class="num">{{ s.incidentes ?? '-' }}</td>
+                <td class="num">{{ s.fallas ?? '-' }}</td>
+                <td class="num">{{ s.quejas ?? '-' }}</td>
+                <td class="num">{{ s.seguridad ?? '-' }}</td>
+                <td class="tasa">
+                  @if (s.tasa_x1000 !== null) {
+                    <div class="tasa__celda">
+                      <div class="barra" [class.barra--rojo]="i === 0"><div [style.width.%]="anchoTasa(s.tasa_x1000)"></div></div>
+                      <span class="cifra">{{ s.tasa_x1000 | number: '1.1-1' }}</span>
+                    </div>
+                  } @else {
+                    <span class="vacio">{{ s.boletas === 0 ? 'Sin ventas' : '-' }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</section>

@@ -1,0 +1,132 @@
+<section>
+  <header class="seccion__cabecera">
+    <h2>Película, ficha técnica y requisitos</h2>
+    <p class="seccion__desc">Información de la película, su elenco y lo que necesita cada función programada.</p>
+  </header>
+
+  <form class="filtros" (ngSubmit)="consultar()">
+    <label class="campo campo--ancho">
+      <span>Película</span>
+      <select name="peliculaSel" [(ngModel)]="idPelicula">
+        <option [ngValue]="null" disabled>Selecciona una película</option>
+        @for (p of catalogo()?.peliculas ?? []; track p.id_pelicula) {
+          <option [ngValue]="p.id_pelicula">{{ p.id_pelicula }}. {{ p.nombre }}</option>
+        }
+      </select>
+    </label>
+    <label class="campo campo--corto">
+      <span>ID</span>
+      <input type="number" name="peliculaId" min="1" [(ngModel)]="idPelicula" />
+    </label>
+    <button class="boton" type="submit" [disabled]="!idPelicula || cargando()">
+      {{ cargando() ? 'Consultando...' : 'Consultar' }}
+    </button>
+  </form>
+
+  @if (error()) {
+    <p class="aviso">{{ error() }}</p>
+  }
+
+  @if (datos(); as d) {
+    @for (a of d.avisos; track a) {
+      <p class="aviso aviso--suave">{{ a }}</p>
+    }
+
+    <div class="titular">
+      <h3 class="titular__nombre">{{ d.pelicula.nombre }}</h3>
+      @if (d.ficha?.titulo_original; as original) {
+        <p class="titular__original">{{ original }}</p>
+      }
+      <p class="titular__meta">
+        <span>Clasificación <strong>{{ d.pelicula.clasificacion }}</strong></span>
+        <span>Duración <strong class="cifra">{{ d.pelicula.duracion }} min</strong></span>
+      </p>
+    </div>
+
+    <div class="columnas">
+      <div class="bloque">
+        <div class="bloque__titulo">
+          <h3>Ficha técnica</h3>
+        </div>
+
+        @if (!d.ficha_disponible) {
+          <p class="vacio">No se pudo consultar la ficha técnica.</p>
+        } @else if (!d.ficha) {
+          <p class="vacio">Esta película no tiene ficha técnica registrada.</p>
+        } @else {
+          @if (d.ficha.directores.length) {
+            <p class="direccion">Dirigida por {{ d.ficha.directores.join(', ') }}</p>
+          }
+
+          <table class="tabla">
+            <thead>
+              <tr><th>Nombre</th><th>Rol</th><th>Personaje</th></tr>
+            </thead>
+            <tbody>
+              @for (e of d.ficha.elenco; track $index) {
+                <tr>
+                  <td>{{ e.nombre }}</td>
+                  <td>{{ e.rol ?? '' }}</td>
+                  <td>{{ e.personaje ?? '' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="3" class="vacio">Sin elenco registrado.</td></tr>
+              }
+            </tbody>
+          </table>
+
+          @if (d.ficha.versiones.length) {
+            <h4 class="subtitulo">Versiones disponibles</h4>
+            <ul class="versiones">
+              @for (v of d.ficha.versiones; track $index) {
+                <li>{{ describir(v) }}</li>
+              }
+            </ul>
+          }
+        }
+      </div>
+
+      <div class="bloque">
+        <div class="bloque__titulo">
+          <h3>Funciones programadas</h3>
+        </div>
+
+        <p class="nota resumen">
+          {{ d.funciones.length }} funciones, {{ conRequisitos(d) }} con requisitos especiales.
+          @if (!d.requisitos_disponibles) { Los requisitos no están disponibles en este momento. }
+        </p>
+
+        @for (f of d.funciones; track f.id_funcion) {
+          <div class="funcion">
+            <div class="funcion__fila">
+              <span class="cifra funcion__id">{{ f.id_funcion }}</span>
+              <span>{{ f.fecha_hora | date: 'dd/MM/yyyy HH:mm' }}</span>
+              <span>{{ f.sede }}, sala <span class="cifra">{{ f.sala }}</span></span>
+              <span class="funcion__formato" [class.especial]="f.requisitos">{{ f.requisitos?.formato ?? 'Estándar' }}</span>
+            </div>
+
+            @if (f.requisitos; as req) {
+              <details class="checklist">
+                <summary>
+                  Checklist: <span class="cifra">{{ req.verificados }} de {{ req.obligatorios }}</span>
+                  obligatorios verificados
+                </summary>
+                <ul>
+                  @for (c of req.checklist; track $index) {
+                    <li [class.hecho]="c.verificado">
+                      <span class="checklist__marca" [class.on]="c.verificado"></span>
+                      {{ c.item }}
+                      @if (c.obligatorio) { <span class="checklist__obl">(obligatorio)</span> }
+                    </li>
+                  }
+                </ul>
+              </details>
+            }
+          </div>
+        } @empty {
+          <p class="vacio">La película no tiene funciones programadas.</p>
+        }
+      </div>
+    </div>
+  }
+</section>

@@ -1,0 +1,45 @@
+@let r = resultado();
+
+<div class="resultado" [class.fallo]="!r.ok">
+  <div class="resultado__estado">
+    <p class="resultado__msg">{{ r.mensaje }}</p>
+    @if (!r.ok && origenTexto()) {
+      <p class="resultado__origen">Falló en: {{ origenTexto() }}</p>
+    }
+  </div>
+
+  <div class="resultado__cuerpo">
+    <div>
+      <h4>Pasos</h4>
+      <ol class="bitacora">
+        @for (p of pasos(); track $index) {
+          <li [class.reversa]="p.reversa">
+            <span class="bitacora__motor">{{ p.etiqueta }}</span>
+            <span>{{ p.texto }}</span>
+          </li>
+        } @empty {
+          <li class="vacio">No se alcanzó a ejecutar ningún paso.</li>
+        }
+      </ol>
+    </div>
+
+    <div>
+      <h4>Registros</h4>
+      <table class="tabla">
+        <thead>
+          <tr><th></th><th class="num">Antes</th><th class="num">Después</th><th class="num">Cambio</th></tr>
+        </thead>
+        <tbody>
+          @for (c of r.antes | keyvalue; track c.key) {
+            <tr>
+              <td class="capital">{{ c.key }}</td>
+              <td class="num">{{ c.value ?? '-' }}</td>
+              <td class="num">{{ r.despues[c.key] ?? '-' }}</td>
+              <td class="num">{{ diferencia(c.value, r.despues[c.key]) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
