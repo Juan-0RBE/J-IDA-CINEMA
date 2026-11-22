@@ -60,64 +60,30 @@ Cada motor guarda lo que mejor maneja, y la capa de integración en Python cruza
 ## Ejecución
 
 ### Fase 1: PostgreSQL
-
-<!-- TODO: pasos de la fase 1. Ejemplo: -->
-
-```bash
-psql "<cadena de conexión de Neon>" -f avance-1/<script-creacion>.sql
-psql "<cadena de conexión de Neon>" -f avance-1/<script-datos>.sql
-```
+- Dirigirse a la carpeta `avance1-postgresql`.
+- Ejecutar el script `01_creacion_tablas.sql` en un entorno como Neon para crear las tablas que se usan en PostgreSQL.
+- Ejecutar el script `02_datos_prueba.sql` para cargar los datos correspondientes en las tablas.
+- Ejecutar el script `03_triggers.sql` para observar ejemplos de aplicación de *triggers* sobre las tablas creadas.
+- Ejecutar el script `04_procedimientos.sql` para observar ejemplos de aplicación de procedimientos sobre las tablas creadas.
+- Ejecutar el script `05_consultas.sql` para observar ejemplos de aplicación de consultas sobre las tablas creadas.
 
 ### Fase 2: MongoDB
-
-<!-- TODO: pasos de la fase 2. Ejemplo: -->
-
-```bash
-mongosh "<cadena de conexión de Atlas>" avance-2/<script-colecciones>.js
-```
+- Dirigirse a la carpeta `avance2-mongodb`.
+- Ejecutar el script `01_creacion_colecciones.js` en un entorno como MongoDB Compass para crear las colecciones que se usan en MongoDB.
+- Ejecutar el script `02_datos_prueba.js` para cargar los datos correspondientes en las colecciones creadas.
+- Ejecutar el script `03_consultas.js` para observar ejemplos de aplicación de consultas sobre las colecciones creadas.
 
 ### Fase 3: Integración
+- Dirigirse a la carpeta `entrega-final`.
+- Descargar el script de integración `jida_cinema_api.py`, que contiene la integración políglota entre las bases de datos.
+- En el archivo `env.example` (o `.env.example`), reemplazar las credenciales de ejemplo por las propias para llevar a cabo las pruebas.
+- Descargar la carpeta `Frontend` que se encuentra dentro de la carpeta `modulo-api` para usar la interfaz que se conecta con el código de Python.
+- Para ejecutar el código de Python, usar el botón **Run** en un editor de código como VS Code.
+- Para ejecutar la interfaz, usar el comando correspondiente en la terminal de VS Code según el *framework* del proyecto (`npm start` o `ng serve`).
 
-**1. Variables de entorno.** En `entrega-final/modulo-api/` copiar `.env.example` como `.env` y llenar
-los datos de conexión. El archivo `.env` no se sube al repositorio.
+### Verificaciones
 
-```
-PG_HOST=ep-xxxxx-pooler.c-7.us-east-2.aws.neon.tech
-PG_DATABASE=neondb
-PG_USER=neondb_owner
-PG_PASSWORD=
-PG_PORT=5432
-PG_SSLMODE=require
-MONGO_URL=mongodb+srv://usuario:password@cluster.xxxxx.mongodb.net/
-MONGO_DB=jida_cinema
-```
-
-**2. Script de integración.**
-
-```bash
-cd entrega-final/script-integracion
-pip install -r ../modulo-api/requirements.txt
-python <!-- TODO: nombre del script -->.py
-```
-
-**3. API.**
-
-```bash
-cd entrega-final/modulo-api
-pip install -r requirements.txt
-python jida_cinema_api.py
-```
-
-El API queda en `http://localhost:8000` y su documentación interactiva (Swagger) en
-`http://localhost:8000/docs`.
-
-**4. Frontend.** Con el API en ejecución, en otra terminal:
-
-```bash
-cd entrega-final/modulo-api/frontend
-npm install
-npm start
-```
+Para poder comparar los resultados obtenidos, puede apoyarse de las evidencias que se encuentran en cada carpeta mencionada durante el proceso.
 
 Abrir `http://localhost:4200`.
 ---
