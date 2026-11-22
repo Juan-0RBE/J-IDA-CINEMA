@@ -1,0 +1,105 @@
+<section>
+  <header class="seccion__cabecera">
+    <h2>Reserva de sala para evento</h2>
+    <p class="seccion__desc">Reserva una sala para un evento privado y define cómo debe quedar montada.</p>
+  </header>
+
+  @if (error()) {
+    <p class="aviso">{{ error() }}</p>
+  }
+
+  <form (ngSubmit)="enviar()">
+    <div class="evento">
+      <fieldset class="bloque">
+        <div class="bloque__titulo">
+          <h3>Función</h3>
+        </div>
+        <div class="rejilla">
+          <label class="campo campo--doble">
+            <span>Película</span>
+            <select name="pelicula" [(ngModel)]="idPelicula" required>
+              <option [ngValue]="null" disabled>Selecciona una película</option>
+              @for (p of catalogo()?.peliculas ?? []; track p.id_pelicula) {
+                <option [ngValue]="p.id_pelicula">{{ p.nombre }}</option>
+              }
+            </select>
+          </label>
+          <label class="campo">
+            <span>Sede</span>
+            <select name="sede" [(ngModel)]="nombreSede" required>
+              <option [ngValue]="null" disabled>Selecciona una sede</option>
+              @for (s of catalogo()?.sedes ?? []; track s) {
+                <option [ngValue]="s">{{ s }}</option>
+              }
+            </select>
+          </label>
+          <label class="campo">
+            <span>Número de sala</span>
+            <input type="number" name="sala" min="1" [(ngModel)]="numSala" />
+          </label>
+          <label class="campo">
+            <span>Fecha y hora</span>
+            <input type="datetime-local" name="hora" [(ngModel)]="horaInicio" required />
+          </label>
+          <label class="campo">
+            <span>Idioma</span>
+            <input type="text" name="idioma" [(ngModel)]="idioma" />
+          </label>
+          <label class="campo">
+            <span>ID espectador solicitante</span>
+            <input type="number" name="espectador" min="1" [(ngModel)]="idEspectador" />
+          </label>
+          <label class="campo">
+            <span>ID proyeccionista</span>
+            <input type="number" name="proyeccionista" min="1" [(ngModel)]="idProyeccionista" />
+          </label>
+        </div>
+
+        <p class="nota anticipacion">
+          Anticipación: <span class="cifra">{{ diasAnticipacion() ?? 0 }}</span> días
+        </p>
+      </fieldset>
+
+      <fieldset class="bloque">
+        <div class="bloque__titulo">
+          <h3>Montaje</h3>
+        </div>
+        <div class="rejilla">
+          <label class="campo">
+            <span>Área (m²)</span>
+            <input type="number" name="area" min="1" step="0.5" [(ngModel)]="montaje.area_montaje_m2" />
+          </label>
+          <label class="campo">
+            <span>Distribución</span>
+            <input type="text" name="distribucion" list="distribuciones" [(ngModel)]="montaje.distribucion" />
+            <datalist id="distribuciones">
+              <option value="Auditorio"></option>
+              <option value="Mesa redonda"></option>
+              <option value="Escuela"></option>
+            </datalist>
+          </label>
+          <label class="campo">
+            <span>Micrófonos</span>
+            <input type="number" name="microfonos" min="0" [(ngModel)]="montaje.microfonos" />
+          </label>
+          <label class="campo">
+            <span>Pantalla</span>
+            <input type="text" name="pantalla" [(ngModel)]="montaje.pantalla" />
+          </label>
+          <label class="campo campo--check">
+            <input type="checkbox" name="tarima" [(ngModel)]="montaje.tarima" />
+            <span>Requiere tarima</span>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <button class="boton" type="submit" [disabled]="!idPelicula || !nombreSede || enviando()">
+      {{ enviando() ? 'Reservando...' : 'Reservar evento' }}
+    </button>
+  </form>
+
+  @if (resultado(); as r) {
+    <app-resultado [resultado]="r" />
+  }
+</section>
