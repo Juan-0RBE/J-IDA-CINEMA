@@ -340,6 +340,41 @@ db.reportes_incidentes.createIndex({ id_sede: 1, estado: 1 },    { name: "idx_in
 db.reportes_incidentes.createIndex({ id_funcion: 1 },            { name: "idx_inc_funcion", sparse: true });
 db.reportes_incidentes.createIndex({ id_colaborador: 1 },        { name: "idx_inc_colaborador", sparse: true });
 
+/* ============================================================================
+   6. comprobantes_venta
+   Patrón de referencia extendida + instantánea: copia de PostgreSQL los datos
+   que el comprobante necesita mostrar (película, sede, sala, fecha de la
+   función, precios) tal como estaban al momento de la venta, para que el
+   comprobante no cambie aunque luego se modifiquen esos datos en PostgreSQL.
+   Patrón computado: total_boletas, total_productos y total se calculan una vez
+   al emitir el comprobante y se guardan, en vez de recalcularse en cada lectura.
+   Embebido: asientos, productos (con nombre, cantidad, precio y subtotal).
+   Referenciado: id_venta (único, relación 1:1 con la venta en PostgreSQL),
+                 id_funcion, id_espectador, id_producto (PostgreSQL).
+   Se escribe en la transacción cruzada: si este insert falla, PostgreSQL hace
+   ROLLBACK de la venta, así que nunca queda una venta sin comprobante.
+   ============================================================================ */
+db.createCollection("comprobantes_venta", {
+    validator: {
+      $jsonSchema: {
+        bsonType: "object",
+        title: "Comprobante de venta (transacción cruzada con PostgreSQL)",
+        required: ["id_venta", "id_funcion", "id_espectador", "pelicula",
+                   "asientos", "total", "codigo", "fecha_emision"],
+        properties: {
+          id_venta:      { bsonType: "number", minimum: 1, description: "id_venta de PostgreSQL" },
+          id_funcion:    { bsonType: "number", minimum: 1 },
+          id_espectador: { bsonType: "number", minimum: 1 },
+          pelicula:      { bsonType: "string" },
+          asientos:      { bsonType: "array", minItems: 1 },
+          total:         { bsonType: "number", minimum: 0, description: "El total no puede ser negativo" },
+          codigo:        { bsonType: "string" },
+          fecha_emision: { bsonType: "date" }
+        }
+      }
+    }
+}
+db.comprobantes_venta.createIndex({ id_venta: 1 }, { unique: true });
 
 /* ============================================================================
    5. VERIFICACIÓN Y PRUEBAS DE VALIDACIÓN
