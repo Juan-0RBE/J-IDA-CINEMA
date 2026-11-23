@@ -10,7 +10,8 @@
      2. requisitos_proyeccion       ($jsonSchema + índices)
      3. resenas_peliculas           ($jsonSchema + índices)
      4. reportes_incidentes         ($jsonSchema + índices)
-     5. Verificación y pruebas de validación (inserts que DEBEN fallar)
+     5. comprobantes_venta          ($jsonSchema + índice) - Entrega final
+     6. Verificación y pruebas de validación (inserts que DEBEN fallar)
 
    IDENTIFICADORES COMPARTIDOS CON POSTGRESQL (sin FK entre motores: la
    integridad referencial la valida la aplicación)
@@ -24,8 +25,9 @@
      id_colaborador       -> Colaborador.Id_Colaborador
      id_producto          -> Producto_Confiteria.Id_Producto
      id_contrato          -> Contrato.Id_Contrato
+     id_venta             -> Venta.Id_Venta
 
-   $jsonSchema en las 4 colecciones (grupo de 5).
+   $jsonSchema en las 5 colecciones (grupo de 5).
    ============================================================================ */
 
 
@@ -38,6 +40,8 @@ db.fichas_tecnicas_peliculas.drop();
 db.requisitos_proyeccion.drop();
 db.resenas_peliculas.drop();
 db.reportes_incidentes.drop();
+// comprobantes_venta NO se borra: sus documentos los genera la transacción
+// cruzada y cada uno corresponde a una venta real en PostgreSQL.
 
 
 /* ============================================================================
@@ -341,7 +345,7 @@ db.reportes_incidentes.createIndex({ id_funcion: 1 },            { name: "idx_in
 db.reportes_incidentes.createIndex({ id_colaborador: 1 },        { name: "idx_inc_colaborador", sparse: true });
 
 /* ============================================================================
-   6. comprobantes_venta
+   5. comprobantes_venta
    Patrón de referencia extendida + instantánea: copia de PostgreSQL los datos
    que el comprobante necesita mostrar (película, sede, sala, fecha de la
    función, precios) tal como estaban al momento de la venta, para que el
@@ -354,7 +358,9 @@ db.reportes_incidentes.createIndex({ id_colaborador: 1 },        { name: "idx_in
    Se escribe en la transacción cruzada: si este insert falla, PostgreSQL hace
    ROLLBACK de la venta, así que nunca queda una venta sin comprobante.
    ============================================================================ */
-db.createCollection("comprobantes_venta", {
+// Solo se crea si no existe (puede haberla creado ya el script de integración)
+if (!db.getCollectionNames().includes("comprobantes_venta")) {
+  db.createCollection("comprobantes_venta", {
     validator: {
       $jsonSchema: {
         bsonType: "object",
@@ -362,22 +368,27 @@ db.createCollection("comprobantes_venta", {
         required: ["id_venta", "id_funcion", "id_espectador", "pelicula",
                    "asientos", "total", "codigo", "fecha_emision"],
         properties: {
-          id_venta:      { bsonType: "number", minimum: 1, description: "id_venta de PostgreSQL" },
-          id_funcion:    { bsonType: "number", minimum: 1 },
-          id_espectador: { bsonType: "number", minimum: 1 },
-          pelicula:      { bsonType: "string" },
-          asientos:      { bsonType: "array", minItems: 1 },
+          id_venta:      { bsonType: "number", minimum: 1, description: "Id_Venta en PostgreSQL (identificador compartido)" },
+          id_funcion:    { bsonType: "number", minimum: 1, description: "Id_Funcion en PostgreSQL" },
+          id_espectador: { bsonType: "number", minimum: 1, description: "Id_Espectador en PostgreSQL" },
+          pelicula:      { bsonType: "string", description: "Nombre de la película (copia al momento de la venta)" },
+          asientos:      { bsonType: "array", minItems: 1, description: "Sillas asignadas, ej. A1, A2" },
           total:         { bsonType: "number", minimum: 0, description: "El total no puede ser negativo" },
-          codigo:        { bsonType: "string" },
+          codigo:        { bsonType: "string", description: "Código único del comprobante" },
           fecha_emision: { bsonType: "date" }
         }
       }
-    }
+    },
+    validationLevel: "strict",
+    validationAction: "error"
+  });
+  // Un comprobante por venta
+  db.comprobantes_venta.createIndex({ id_venta: 1 }, { unique: true });
 }
-db.comprobantes_venta.createIndex({ id_venta: 1 }, { unique: true });
+
 
 /* ============================================================================
-   5. VERIFICACIÓN Y PRUEBAS DE VALIDACIÓN
+   6. VERIFICACIÓN Y PRUEBAS DE VALIDACIÓN
    Sirven como evidencia: los inserts inválidos DEBEN ser rechazados.
    No dejan datos (si fallan, no se inserta nada).
    ============================================================================ */
@@ -387,7 +398,7 @@ db.getCollectionInfos().forEach(c =>
 );
 
 print("\n=== Índices ===");
-["fichas_tecnicas_peliculas", "requisitos_proyeccion", "resenas_peliculas", "reportes_incidentes"].forEach(n => {
+["fichas_tecnicas_peliculas", "requisitos_proyeccion", "resenas_peliculas", "reportes_incidentes", "comprobantes_venta"].forEach(n => {
   print(n + ": " + db.getCollection(n).getIndexes().map(i => i.name).join(", "));
 });
 
@@ -410,7 +421,11 @@ const pruebas = [
   ["incidentes: falla técnica sin minutos_interrupcion",
     "reportes_incidentes",
     { tipo: "falla_tecnica", fecha_hora: new Date(), id_sede: 1, severidad: "alta", estado: "abierto",
-      descripcion: "x", detalle: { equipo: "Proyector" } }]
+      descripcion: "x", detalle: { equipo: "Proyector" } }],
+  ["comprobantes: total negativo",
+    "comprobantes_venta",
+    { id_venta: 999999, id_funcion: 1, id_espectador: 1, pelicula: "X", asientos: ["A1"],
+      total: -1, codigo: "PRUEBA", fecha_emision: new Date() }]
 ];
 
 pruebas.forEach(([nombre, coleccion, doc]) => {
